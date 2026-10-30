@@ -1,7 +1,6 @@
 <!DOCTYPE html>
 <html lang="ru">
 <head>
-    
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Конструктор изображения</title>
@@ -879,14 +878,24 @@
                 const baseWidth = Math.max(1, maxX - minX);
                 const baseHeight = Math.max(1, maxY - minY);
 
-                // Экспорт высокого разрешения. Холст не ограничен размерами
-                // скрытой первой картинки: масштабируется только видимая область.
-                // Защита от слишком больших canvas на мобильных устройствах.
-                const EXPORT_SCALE = 4;
-                const MAX_DIMENSION = 8192;
-                const MAX_PIXELS = 32000000;
+                // Разрешение экспорта рассчитывается по реальным исходникам,
+                // прежде всего по второй (загруженной) картинке.
+                // Простое 4-кратное увеличение могло терять её настоящие пиксели.
+                const sourceScale = layer => Math.max(
+                    layer.img.naturalWidth / Math.max(layer.w, 0.001),
+                    layer.img.naturalHeight / Math.max(layer.h, 0.001)
+                );
+                const uploadedLayer = layers.find(layer => layer.img === fgImg);
+                const neededScale = uploadedLayer
+                    ? Math.max(1, sourceScale(uploadedLayer))
+                    : Math.max(1, ...layers.map(sourceScale));
+
+                // Защита от лимитов браузера: сохраняем максимально возможное
+                // исходное разрешение в пределах безопасного размера canvas.
+                const MAX_DIMENSION = 16384;
+                const MAX_PIXELS = 80000000;
                 const scale = Math.min(
-                    EXPORT_SCALE,
+                    neededScale,
                     MAX_DIMENSION / Math.max(baseWidth, baseHeight),
                     Math.sqrt(MAX_PIXELS / (baseWidth * baseHeight))
                 );
