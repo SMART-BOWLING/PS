@@ -781,21 +781,26 @@
             return new Promise((resolve, reject) => {
                 const W = bgImg.naturalWidth;
                 const H = bgImg.naturalHeight;
+
                 if (!W || !H) {
                     reject(new Error('Фоновая картинка ещё не загружена'));
                     return;
                 }
 
-                const canvas = document.createElement('canvas');
-                canvas.width = W;
-                canvas.height = H;
-                const ctx = canvas.getContext('2d');
+                const layers = [];
 
-                // Фон рисуем только если он не скрыт
+                // ===== 1. Первая картинка / фон =====
                 if (!bgImg.classList.contains('hidden')) {
-                    ctx.drawImage(bgImg, 0, 0, W, H);
+                    layers.push({
+                        img: bgImg,
+                        x: 0,
+                        y: 0,
+                        w: W,
+                        h: H
+                    });
                 }
 
+                // ===== 2. Загруженная картинка =====
                 if (fgWrap.classList.contains('visible') && fgImg.naturalWidth > 0) {
                     const percent = parseFloat(sizeSlider.value) / 100;
                     const offY = parseFloat(fgOffsetY.value) / 100;
@@ -808,14 +813,22 @@
                     const srcW = fgImg.naturalWidth;
                     const srcH = fgImg.naturalHeight;
                     const scale = Math.min(boxW / srcW, boxH / srcH);
+
                     const drawW = srcW * scale;
                     const drawH = srcH * scale;
                     const drawX = boxX + (boxW - drawW) / 2;
                     const drawY = boxY + (boxH - drawH) / 2;
 
-                    ctx.drawImage(fgImg, drawX, drawY, drawW, drawH);
+                    layers.push({
+                        img: fgImg,
+                        x: drawX,
+                        y: drawY,
+                        w: drawW,
+                        h: drawH
+                    });
                 }
 
+                // ===== 3. Верхняя картинка =====
                 if (topToggle.checked && topImg.naturalWidth > 0) {
                     const percent = parseFloat(topSize.value) / 100;
                     const offX = parseFloat(topOffsetX.value) / 100;
@@ -829,8 +842,77 @@
                     const tX = centerX - tW / 2;
                     const tY = H * offY;
 
-                    ctx.drawImage(topImg, tX, tY, tW, tH);
+                    layers.push({
+                        img: topImg,
+                        x: tX,
+                        y: tY,
+                        w: tW,
+                        h: tH
+                    });
                 }
+
+                if (!layers.length) {
+                    reject(new Error('Нет включённых изображений для экспорта'));
+                    return;
+                }
+
+                // ===== Считаем общие границы только ВКЛЮЧЁННЫХ изображений =====
+                let minX = Infinity;
+                let minY = Infinity;
+                let maxX = -Infinity;
+                let maxY = -Infinity;
+
+                layers.forEach(layer => {
+                    minX = Math.min(minX, layer.x);
+                    minY = Math.min(minY, layer.y);
+                    maxX = Math.max(maxX, layer.x + layer.w);
+                    maxY = Math.max(maxY, layer.y + layer.h);
+                });
+
+                // Округляем наружу, чтобы ничего не обрезалось на 1 пиксель
+                minX = Math.floor(minX);
+                minY = Math.floor(minY);
+                maxX = Math.ceil(maxX);
+                maxY = Math.ceil(maxY);
+
+                const baseWidth = Math.max(1, maxX - minX);
+                const baseHeight = Math.max(1, maxY - minY);
+
+                // Экспорт высокого разрешения. Холст не ограничен размерами
+                // скрытой первой картинки: масштабируется только видимая область.
+                // Защита от слишком больших canvas на мобильных устройствах.
+                const EXPORT_SCALE = 4;
+                const MAX_DIMENSION = 8192;
+                const MAX_PIXELS = 32000000;
+                const scale = Math.min(
+                    EXPORT_SCALE,
+                    MAX_DIMENSION / Math.max(baseWidth, baseHeight),
+                    Math.sqrt(MAX_PIXELS / (baseWidth * baseHeight))
+                );
+                if (scale <= 0 || !Number.isFinite(scale)) {
+                    reject(new Error('Некорректные размеры изображения'));
+                    return;
+                }
+
+                const canvas = document.createElement('canvas');
+                canvas.width = Math.max(1, Math.round(baseWidth * scale));
+                canvas.height = Math.max(1, Math.round(baseHeight * scale));
+                const ctx = canvas.getContext('2d');
+                ctx.imageSmoothingEnabled = true;
+                ctx.imageSmoothingQuality = 'high';
+                ctx.setTransform(canvas.width / baseWidth, 0, 0,
+                                 canvas.height / baseHeight, 0, 0);
+
+                // Сдвигаем все изображения к началу холста, не меняя их пропорции.
+                layers.forEach(layer => {
+                    ctx.drawImage(
+                        layer.img,
+                        layer.x - minX,
+                        layer.y - minY,
+                        layer.w,
+                        layer.h
+                    );
+                });
 
                 canvas.toBlob((blob) => {
                     if (blob) resolve(blob);
