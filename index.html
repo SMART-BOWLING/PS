@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Лигал</title>
+    <title>Партнер</title>
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
         :root {
@@ -330,7 +330,6 @@
             background: #44474e;
         }
 
-        /* Кликабельное значение процента */
         .value {
             min-width: 52px;
             text-align: right;
@@ -460,7 +459,7 @@
         <button class="preset-btn" data-size="23.28" data-x="35.69" data-y="3.44" title="Пресет 1: 23.28 / 35.69 / 3.44">
             <i data-lucide="bookmark"></i>
         </button>
-        <button class="preset-btn" data-size="100" data-x="0" data-y="0" title="Пресет 2: 100 / 0 / 0">
+        <button class="preset-btn" data-size="12.41" data-x="-29.17" data-y="87.80" title="Пресет 2: 12.41 / -29.17 / 87.80">
             <i data-lucide="bookmark"></i>
         </button>
         <button class="preset-btn" data-size="100" data-x="0" data-y="0" title="Пресет 3: 100 / 0 / 0">
@@ -603,7 +602,6 @@
         const DEFAULT_TOP_OFFSET_Y = 3.44;
         const DEFAULT_FG_OFFSET_Y = 0;
 
-        // Карта: id ползунка -> значение по умолчанию + применятель
         const sliderDefaults = {
             sizeSlider:  { value: 100, apply: applySize },
             fgOffsetY:    { value: DEFAULT_FG_OFFSET_Y, apply: applyFgOffsetY },
@@ -644,7 +642,6 @@
         topOffsetX.addEventListener('input', (e) => applyTopOffsetX(e.target.value));
         topOffsetY.addEventListener('input', (e) => applyTopOffsetY(e.target.value));
 
-        // ===== Клик по значению — сброс конкретного ползунка к дефолту =====
         document.querySelectorAll('.value[data-slider]').forEach((el) => {
             el.addEventListener('click', () => {
                 const sliderId = el.dataset.slider;
