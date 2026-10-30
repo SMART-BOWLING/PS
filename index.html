@@ -579,11 +579,6 @@
         </div>
 
         <div class="actions">
-            <input type="file" id="bgFileInput" accept="image/*">
-            <label for="bgFileInput" class="btn btn-upload" title="Загрузить первую картинку в исходном качестве">
-                <i data-lucide="image-up"></i>
-                Фон HD
-            </label>
             <input type="file" id="fileInput" accept="image/*">
             <label for="fileInput" class="btn btn-upload">
                 <i data-lucide="upload"></i>
@@ -608,8 +603,6 @@
         lucide.createIcons();
 
         const fileInput = document.getElementById('fileInput');
-        const bgFileInput = document.getElementById('bgFileInput');
-        let userBgUrl = null;
         const bgImg = document.getElementById('bgImg');
         const fgWrap = document.getElementById('fgWrap');
         const fgImg = document.getElementById('fgImg');
@@ -760,34 +753,10 @@
         }
         fileInput.addEventListener('change', (e) => loadFile(e.target.files[0]));
 
-        bgFileInput.addEventListener('change', (e) => {
-            const file = e.target.files[0];
-            if (!file || !file.type.startsWith('image/')) return;
-            const nextUrl = URL.createObjectURL(file);
-            bgImg.onload = () => {
-                if (userBgUrl) URL.revokeObjectURL(userBgUrl);
-                userBgUrl = nextUrl;
-                bgImg.onload = null;
-            };
-            bgImg.onerror = () => {
-                URL.revokeObjectURL(nextUrl);
-                bgImg.onload = null;
-                bgImg.onerror = null;
-                alert('Не удалось открыть изображение фона');
-            };
-            bgImg.src = nextUrl;
-            setBgVisible(true);
-        });
-
         resetBtn.addEventListener('click', () => {
             fgWrap.classList.remove('visible');
             fgImg.src = '';
-            bgImg.onload = null;
-            bgImg.onerror = null;
             bgImg.src = defaultBg;
-            if (userBgUrl) URL.revokeObjectURL(userBgUrl);
-            userBgUrl = null;
-            bgFileInput.value = '';
             topImg.src = defaultTop;
             fileInput.value = '';
             topToggle.checked = true;
@@ -910,13 +879,16 @@
                 const baseHeight = Math.max(1, maxY - minY);
 
                 // Разрешение экспорта рассчитывается по реальным исходникам,
-                // для всех включённых слоёв. Если фон имеет небольшое исходное
-                // разрешение, для настоящей чёткости загрузите оригинал через «Фон HD».
+                // прежде всего по второй (загруженной) картинке.
+                // Простое 4-кратное увеличение могло терять её настоящие пиксели.
                 const sourceScale = layer => Math.max(
                     layer.img.naturalWidth / Math.max(layer.w, 0.001),
                     layer.img.naturalHeight / Math.max(layer.h, 0.001)
                 );
-                const neededScale = Math.max(1, ...layers.map(sourceScale));
+                const uploadedLayer = layers.find(layer => layer.img === fgImg);
+                const neededScale = uploadedLayer
+                    ? Math.max(1, sourceScale(uploadedLayer))
+                    : Math.max(1, ...layers.map(sourceScale));
 
                 // Защита от лимитов браузера: сохраняем максимально возможное
                 // исходное разрешение в пределах безопасного размера canvas.
