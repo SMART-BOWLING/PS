@@ -1,0 +1,807 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Конструктор изображения</title>
+    <script src="https://unpkg.com/lucide@latest"></script>
+    <style>
+        :root {
+            --bg: #1e1f22;
+            --bg-soft: #25272b;
+            --surface: #2b2d31;
+            --surface-2: #313338;
+            --border: #3f4147;
+            --text: #e6e6e8;
+            --text-muted: #9a9ca3;
+            --accent: #5b8def;
+            --accent-hover: #4a7ae0;
+            --success: #3ba55d;
+            --success-hover: #349750;
+            --danger: #e05a4e;
+            --danger-hover: #c94a3f;
+            --radius: 10px;
+            --shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        html, body {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            overflow: hidden;
+        }
+
+        body {
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+        }
+
+        .stage {
+            flex: 1 1 auto;
+            min-height: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 24px;
+            overflow: auto;
+            background-image:
+                linear-gradient(45deg, #232427 25%, transparent 25%),
+                linear-gradient(-45deg, #232427 25%, transparent 25%),
+                linear-gradient(45deg, transparent 75%, #232427 75%),
+                linear-gradient(-45deg, transparent 75%, #232427 75%);
+            background-size: 24px 24px;
+            background-position: 0 0, 0 12px, 12px -12px, -12px 0;
+            background-color: #1a1b1e;
+        }
+
+        .stack {
+            position: relative;
+            display: inline-block;
+            max-width: 100%;
+            max-height: 100%;
+            overflow: visible;
+        }
+
+        .stack .bg-img {
+            display: block;
+            max-width: 100%;
+            max-height: 82vh;
+            width: auto;
+            height: auto;
+            object-fit: contain;
+            box-shadow: var(--shadow);
+        }
+
+        .stack .fg-wrap {
+            position: absolute;
+            top: calc(var(--fg-offset-y, 0) * 1%);
+            left: 50%;
+            transform: translateX(-50%);
+            width: calc(var(--fg-size, 100) * 1%);
+            aspect-ratio: 1 / 1;
+            display: none;
+            z-index: 1;
+            transition: width 0.05s linear, top 0.05s linear;
+        }
+
+        .stack .fg-wrap.visible {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .stack .fg-wrap .fg-img {
+            max-width: 100%;
+            max-height: 100%;
+            width: auto;
+            height: auto;
+            object-fit: contain;
+            display: block;
+        }
+
+        /* Третья картинка: включается/выключается галочкой */
+        .stack .top-img {
+            position: absolute;
+            top: calc(var(--top-offset-y, 0) * 1%);
+            left: calc(50% + var(--top-offset-x, 0) * 1%);
+            transform: translateX(-50%);
+            width: calc(var(--top-size, 100) * 1%);
+            object-fit: contain;
+            display: block;
+            z-index: 2;
+            pointer-events: none;
+            transition: top 0.05s linear, left 0.05s linear, width 0.05s linear;
+        }
+
+        .stack .top-img.hidden {
+            display: none;
+        }
+
+        /* ===== Пресеты + переключатель + ПАРТНЕР ===== */
+        .presets {
+            flex: 0 0 auto;
+            background: var(--bg-soft);
+            border-top: 1px solid var(--border);
+            padding: 8px 14px 4px;
+            display: flex;
+            flex-wrap: nowrap;
+            gap: 8px;
+            align-items: center;
+            justify-content: center;
+            overflow-x: auto;
+            scrollbar-width: none;
+        }
+
+        .presets::-webkit-scrollbar {
+            display: none;
+        }
+
+        .preset-btn {
+            width: 32px;
+            height: 32px;
+            padding: 0;
+            border: 1px solid var(--border);
+            background: var(--surface);
+            color: var(--text);
+            border-radius: 8px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.15s, border-color 0.15s, color 0.15s;
+            flex: 0 0 auto;
+        }
+
+        .preset-btn:hover {
+            background: var(--surface-2);
+            border-color: #4c4f56;
+            color: var(--accent);
+        }
+
+        .preset-btn:active {
+            background: #33363c;
+        }
+
+        .preset-btn i {
+            width: 15px;
+            height: 15px;
+        }
+
+        /* Кнопка ПАРТНЕР */
+        .partner-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 0 12px;
+            height: 32px;
+            border: 1px solid var(--border);
+            background: var(--accent);
+            color: #fff;
+            border-radius: 8px;
+            font-size: 12px;
+            font-weight: 700;
+            font-family: inherit;
+            letter-spacing: 0.4px;
+            cursor: pointer;
+            transition: background 0.15s, border-color 0.15s;
+            flex: 0 0 auto;
+            white-space: nowrap;
+        }
+
+        .partner-btn:hover {
+            background: var(--accent-hover);
+            border-color: var(--accent-hover);
+        }
+
+        .partner-btn:active {
+            background: #3f6fd0;
+        }
+
+        .partner-btn i {
+            width: 14px;
+            height: 14px;
+        }
+
+        /* Галочка включения третьей картинки */
+        .toggle-top {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 0 10px;
+            height: 32px;
+            border: 1px solid var(--border);
+            background: var(--surface);
+            border-radius: 8px;
+            cursor: pointer;
+            user-select: none;
+            font-size: 12px;
+            font-weight: 600;
+            color: var(--text);
+            white-space: nowrap;
+            flex: 0 0 auto;
+            transition: background 0.15s, border-color 0.15s;
+        }
+
+        .toggle-top:hover {
+            background: var(--surface-2);
+            border-color: #4c4f56;
+        }
+
+        .toggle-top input {
+            display: none;
+        }
+
+        /* Кастомная галочка */
+        .toggle-top .check-box {
+            width: 16px;
+            height: 16px;
+            border: 1.5px solid #6b6e76;
+            border-radius: 4px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.15s, border-color 0.15s;
+            flex: 0 0 auto;
+        }
+
+        .toggle-top .check-box i {
+            width: 12px;
+            height: 12px;
+            color: #fff;
+            opacity: 0;
+            transition: opacity 0.15s;
+        }
+
+        .toggle-top input:checked + .check-box {
+            background: var(--success);
+            border-color: var(--success);
+        }
+
+        .toggle-top input:checked + .check-box i {
+            opacity: 1;
+        }
+
+        .toggle-top .toggle-label {
+            color: var(--text);
+        }
+
+        /* ===== Панель управления ===== */
+        .panel {
+            flex: 0 0 auto;
+            background: var(--bg-soft);
+            border-top: 1px solid var(--border);
+            padding: 8px 14px 20px;
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .control {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 6px 10px;
+            display: flex;
+            align-items: center;
+            min-width: 180px;
+            flex: 0 1 210px;
+        }
+
+        .control-row {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            width: 100%;
+        }
+
+        .icon-btn {
+            width: 24px;
+            height: 24px;
+            padding: 0;
+            border: 1px solid var(--border);
+            background: var(--surface-2);
+            color: var(--text);
+            border-radius: 6px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: background 0.15s, border-color 0.15s;
+            flex: 0 0 auto;
+        }
+
+        .icon-btn:hover {
+            background: #3a3d44;
+            border-color: #4c4f56;
+        }
+
+        .icon-btn:active {
+            background: #33363c;
+        }
+
+        .icon-btn i {
+            width: 13px;
+            height: 13px;
+        }
+
+        input[type="range"] {
+            flex: 1 1 auto;
+            width: 100%;
+            min-width: 80px;
+            height: 4px;
+            cursor: pointer;
+            accent-color: var(--accent);
+            background: transparent;
+        }
+
+        input[type="range"]::-webkit-slider-runnable-track {
+            height: 4px;
+            border-radius: 2px;
+            background: #44474e;
+        }
+
+        input[type="range"]::-webkit-slider-thumb {
+            margin-top: -5px;
+        }
+
+        input[type="range"]::-moz-range-track {
+            height: 4px;
+            border-radius: 2px;
+            background: #44474e;
+        }
+
+        .value {
+            min-width: 52px;
+            text-align: right;
+            font-size: 11px;
+            color: var(--text-muted);
+            font-variant-numeric: tabular-nums;
+        }
+
+        .actions {
+            display: flex;
+            gap: 8px;
+            align-items: stretch;
+            flex-wrap: wrap;
+            justify-content: center;
+            flex: 0 1 auto;
+        }
+
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 0 12px;
+            height: 36px;
+            border: none;
+            border-radius: var(--radius);
+            font-size: 12px;
+            font-weight: 600;
+            font-family: inherit;
+            color: #fff;
+            cursor: pointer;
+            transition: background 0.15s, transform 0.05s;
+            white-space: nowrap;
+        }
+
+        .btn:active {
+            transform: translateY(1px);
+        }
+
+        .btn i {
+            width: 14px;
+            height: 14px;
+        }
+
+        .btn-upload { background: var(--accent); }
+        .btn-upload:hover { background: var(--accent-hover); }
+
+        .btn-share { background: var(--success); }
+        .btn-share:hover { background: var(--success-hover); }
+        .btn-share:disabled { background: #4a4d54; color: #888b92; cursor: not-allowed; }
+
+        .btn-reset { background: var(--danger); }
+        .btn-reset:hover { background: var(--danger-hover); }
+
+        input[type="file"] { display: none; }
+
+        @media (max-width: 760px) {
+            .panel { padding: 8px 8px 16px; gap: 6px; }
+            .presets { padding: 8px 8px 4px; }
+            .control { flex: 1 1 100%; min-width: 0; }
+            .actions { flex: 1 1 100%; }
+            .btn { flex: 1 1 auto; justify-content: center; }
+        }
+    </style>
+</head>
+<body>
+    <div class="stage">
+        <div class="stack" id="stack">
+            <img class="bg-img" id="bgImg" src="https://i.postimg.cc/tJyS5hMH/IMG-7368.png" alt="Фон" crossorigin="anonymous">
+
+            <div class="fg-wrap" id="fgWrap">
+                <img class="fg-img" id="fgImg" alt="Наложение">
+            </div>
+
+            <img class="top-img" id="topImg" src="https://i.postimg.cc/Px6ymBYz/IMG-7374.png" alt="Верхняя картинка" crossorigin="anonymous">
+        </div>
+    </div>
+
+    <div class="presets" id="presets">
+        <!-- Галочка включения/выключения третьей картинки -->
+        <label class="toggle-top" title="Включить / выключить третью картинку">
+            <input type="checkbox" id="topToggle" checked>
+            <span class="check-box"><i data-lucide="check"></i></span>
+            <span class="toggle-label">3-я</span>
+        </label>
+
+        <button class="preset-btn" data-size="23.28" data-x="35.69" data-y="3.44" title="Пресет 1: 23.28 / 35.69 / 3.44">
+            <i data-lucide="bookmark"></i>
+        </button>
+        <button class="preset-btn" data-size="100" data-x="0" data-y="0" title="Пресет 2: 100 / 0 / 0">
+            <i data-lucide="bookmark"></i>
+        </button>
+        <button class="preset-btn" data-size="100" data-x="0" data-y="0" title="Пресет 3: 100 / 0 / 0">
+            <i data-lucide="bookmark"></i>
+        </button>
+        <button class="preset-btn" data-size="100" data-x="0" data-y="0" title="Пресет 4: 100 / 0 / 0">
+            <i data-lucide="bookmark"></i>
+        </button>
+        <button class="preset-btn" data-size="100" data-x="0" data-y="0" title="Пресет 5: 100 / 0 / 0">
+            <i data-lucide="bookmark"></i>
+        </button>
+        <button class="preset-btn" data-size="100" data-x="0" data-y="0" title="Пресет 6: 100 / 0 / 0">
+            <i data-lucide="bookmark"></i>
+        </button>
+        <button class="preset-btn" data-size="100" data-x="0" data-y="0" title="Пресет 7: 100 / 0 / 0">
+            <i data-lucide="bookmark"></i>
+        </button>
+        <button class="preset-btn" data-size="100" data-x="0" data-y="0" title="Пресет 8: 100 / 0 / 0">
+            <i data-lucide="bookmark"></i>
+        </button>
+
+        <!-- Кнопка ПАРТНЕР -->
+        <button class="partner-btn" id="partnerBtn" title="Партнер">
+            <i data-lucide="handshake"></i>
+            ПАРТНЕР
+        </button>
+    </div>
+
+    <div class="panel">
+        <div class="control">
+            <div class="control-row">
+                <button class="icon-btn" data-target="sizeSlider" data-step="-0.1" title="Уменьшить 2-ю картинку">
+                    <i data-lucide="minus"></i>
+                </button>
+                <input type="range" id="sizeSlider" min="10" max="200" value="100" step="0.1" title="Размер 2-й картинки">
+                <button class="icon-btn" data-target="sizeSlider" data-step="0.1" title="Увеличить 2-ю картинку">
+                    <i data-lucide="plus"></i>
+                </button>
+                <span class="value" id="sizeValue">100.00%</span>
+            </div>
+        </div>
+
+        <div class="control">
+            <div class="control-row">
+                <button class="icon-btn" data-target="fgOffsetY" data-step="-0.1" title="Вторая картинка — вверх">
+                    <i data-lucide="chevron-up"></i>
+                </button>
+                <input type="range" id="fgOffsetY" min="-100" max="100" value="0" step="0.01" title="Сдвиг 2-й картинки вверх/вниз">
+                <button class="icon-btn" data-target="fgOffsetY" data-step="0.1" title="Вторая картинка — вниз">
+                    <i data-lucide="chevron-down"></i>
+                </button>
+                <span class="value" id="fgOffsetYValue">0.00%</span>
+            </div>
+        </div>
+
+        <div class="control">
+            <div class="control-row">
+                <button class="icon-btn" data-target="topSize" data-step="-0.1" title="Уменьшить 3-ю картинку">
+                    <i data-lucide="minus"></i>
+                </button>
+                <input type="range" id="topSize" min="1" max="200" value="23.28" step="0.01" title="Размер 3-й картинки">
+                <button class="icon-btn" data-target="topSize" data-step="0.1" title="Увеличить 3-ю картинку">
+                    <i data-lucide="plus"></i>
+                </button>
+                <span class="value" id="topSizeValue">23.28%</span>
+            </div>
+        </div>
+
+        <div class="control">
+            <div class="control-row">
+                <button class="icon-btn" data-target="topOffsetX" data-step="-0.1" title="Влево">
+                    <i data-lucide="chevron-left"></i>
+                </button>
+                <input type="range" id="topOffsetX" min="-100" max="100" value="35.69" step="0.01" title="Сдвиг 3-й картинки влево/вправо">
+                <button class="icon-btn" data-target="topOffsetX" data-step="0.1" title="Вправо">
+                    <i data-lucide="chevron-right"></i>
+                </button>
+                <span class="value" id="topOffsetXValue">35.69%</span>
+            </div>
+        </div>
+
+        <div class="control">
+            <div class="control-row">
+                <button class="icon-btn" data-target="topOffsetY" data-step="-0.1" title="Вверх">
+                    <i data-lucide="chevron-up"></i>
+                </button>
+                <input type="range" id="topOffsetY" min="-100" max="100" value="3.44" step="0.01" title="Сдвиг 3-й картинки вверх/вниз">
+                <button class="icon-btn" data-target="topOffsetY" data-step="0.1" title="Вниз">
+                    <i data-lucide="chevron-down"></i>
+                </button>
+                <span class="value" id="topOffsetYValue">3.44%</span>
+            </div>
+        </div>
+
+        <div class="actions">
+            <input type="file" id="fileInput" accept="image/*">
+            <label for="fileInput" class="btn btn-upload">
+                <i data-lucide="upload"></i>
+                Загрузить
+            </label>
+            <button id="shareBtn" class="btn btn-share" disabled>
+                <i data-lucide="share-2"></i>
+                Поделиться
+            </button>
+            <button id="resetBtn" class="btn btn-reset">
+                <i data-lucide="rotate-ccw"></i>
+                Сбросить
+            </button>
+        </div>
+    </div>
+
+    <script>
+        lucide.createIcons();
+
+        const fileInput = document.getElementById('fileInput');
+        const bgImg = document.getElementById('bgImg');
+        const fgWrap = document.getElementById('fgWrap');
+        const fgImg = document.getElementById('fgImg');
+        const topImg = document.getElementById('topImg');
+        const topToggle = document.getElementById('topToggle');
+        const partnerBtn = document.getElementById('partnerBtn');
+        const resetBtn = document.getElementById('resetBtn');
+        const shareBtn = document.getElementById('shareBtn');
+        const stack = document.getElementById('stack');
+
+        const sizeSlider = document.getElementById('sizeSlider');
+        const sizeValue = document.getElementById('sizeValue');
+        const fgOffsetY = document.getElementById('fgOffsetY');
+        const fgOffsetYValue = document.getElementById('fgOffsetYValue');
+        const topSize = document.getElementById('topSize');
+        const topSizeValue = document.getElementById('topSizeValue');
+        const topOffsetX = document.getElementById('topOffsetX');
+        const topOffsetXValue = document.getElementById('topOffsetXValue');
+        const topOffsetY = document.getElementById('topOffsetY');
+        const topOffsetYValue = document.getElementById('topOffsetYValue');
+
+        const defaultBg = 'https://i.postimg.cc/tJyS5hMH/IMG-7368.png';
+        const defaultTop = 'https://i.postimg.cc/Px6ymBYz/IMG-7374.png';
+
+        const DEFAULT_TOP_SIZE = 23.28;
+        const DEFAULT_TOP_OFFSET_X = 35.69;
+        const DEFAULT_TOP_OFFSET_Y = 3.44;
+        const DEFAULT_FG_OFFSET_Y = 0;
+
+        function applySize(value) {
+            const v = parseFloat(value);
+            stack.style.setProperty('--fg-size', v);
+            sizeValue.textContent = v.toFixed(2) + '%';
+        }
+        function applyFgOffsetY(value) {
+            const v = parseFloat(value);
+            stack.style.setProperty('--fg-offset-y', v);
+            fgOffsetYValue.textContent = v.toFixed(2) + '%';
+        }
+        function applyTopSize(value) {
+            const v = parseFloat(value);
+            stack.style.setProperty('--top-size', v);
+            topSizeValue.textContent = v.toFixed(2) + '%';
+        }
+        function applyTopOffsetX(value) {
+            const v = parseFloat(value);
+            stack.style.setProperty('--top-offset-x', v);
+            topOffsetXValue.textContent = v.toFixed(2) + '%';
+        }
+        function applyTopOffsetY(value) {
+            const v = parseFloat(value);
+            stack.style.setProperty('--top-offset-y', v);
+            topOffsetYValue.textContent = v.toFixed(2) + '%';
+        }
+
+        sizeSlider.addEventListener('input', (e) => applySize(e.target.value));
+        fgOffsetY.addEventListener('input', (e) => applyFgOffsetY(e.target.value));
+        topSize.addEventListener('input', (e) => applyTopSize(e.target.value));
+        topOffsetX.addEventListener('input', (e) => applyTopOffsetX(e.target.value));
+        topOffsetY.addEventListener('input', (e) => applyTopOffsetY(e.target.value));
+
+        // ===== Галочка: показ/скрытие третьей картинки =====
+        topToggle.addEventListener('change', () => {
+            topImg.classList.toggle('hidden', !topToggle.checked);
+        });
+
+        // ===== Кнопка ПАРТНЕР =====
+        partnerBtn.addEventListener('click', () => {
+            // TODO: здесь можно открыть ссылку/модалку/событие партнёра.
+            // Пока — просто уведомление, чтобы кнопка была рабочей.
+            alert('ПАРТНЕР');
+        });
+
+        document.querySelectorAll('.preset-btn').forEach((btn) => {
+            btn.addEventListener('click', () => {
+                const size = parseFloat(btn.dataset.size);
+                const x = parseFloat(btn.dataset.x);
+                const y = parseFloat(btn.dataset.y);
+
+                topSize.value = size; applyTopSize(size);
+                topOffsetX.value = x; applyTopOffsetX(x);
+                topOffsetY.value = y; applyTopOffsetY(y);
+            });
+        });
+
+        document.querySelectorAll('.icon-btn').forEach((btn) => {
+            btn.addEventListener('click', () => {
+                const slider = document.getElementById(btn.dataset.target);
+                const step = parseFloat(btn.dataset.step);
+                const min = parseFloat(slider.min);
+                const max = parseFloat(slider.max);
+
+                let newVal = parseFloat(slider.value) + step;
+                newVal = Math.max(min, Math.min(max, newVal));
+                newVal = Math.round(newVal * 100) / 100;
+                slider.value = newVal;
+
+                switch (btn.dataset.target) {
+                    case 'sizeSlider': applySize(newVal); break;
+                    case 'fgOffsetY': applyFgOffsetY(newVal); break;
+                    case 'topSize': applyTopSize(newVal); break;
+                    case 'topOffsetX': applyTopOffsetX(newVal); break;
+                    case 'topOffsetY': applyTopOffsetY(newVal); break;
+                }
+            });
+        });
+
+        function loadFile(file) {
+            if (file && file.type.startsWith('image/')) {
+                const reader = new FileReader();
+                reader.onload = (event) => {
+                    fgImg.src = event.target.result;
+                    fgWrap.classList.add('visible');
+                    shareBtn.disabled = false;
+                };
+                reader.readAsDataURL(file);
+            }
+        }
+        fileInput.addEventListener('change', (e) => loadFile(e.target.files[0]));
+
+        resetBtn.addEventListener('click', () => {
+            fgWrap.classList.remove('visible');
+            fgImg.src = '';
+            bgImg.src = defaultBg;
+            topImg.src = defaultTop;
+            fileInput.value = '';
+            topToggle.checked = true;
+            topImg.classList.remove('hidden');
+            sizeSlider.value = 100; applySize(100);
+            fgOffsetY.value = DEFAULT_FG_OFFSET_Y; applyFgOffsetY(DEFAULT_FG_OFFSET_Y);
+            topSize.value = DEFAULT_TOP_SIZE; applyTopSize(DEFAULT_TOP_SIZE);
+            topOffsetX.value = DEFAULT_TOP_OFFSET_X; applyTopOffsetX(DEFAULT_TOP_OFFSET_X);
+            topOffsetY.value = DEFAULT_TOP_OFFSET_Y; applyTopOffsetY(DEFAULT_TOP_OFFSET_Y);
+            shareBtn.disabled = true;
+        });
+
+        document.addEventListener('dragover', (e) => e.preventDefault());
+        document.addEventListener('drop', (e) => {
+            e.preventDefault();
+            loadFile(e.dataTransfer.files[0]);
+        });
+
+        function renderComposite() {
+            return new Promise((resolve, reject) => {
+                const W = bgImg.naturalWidth;
+                const H = bgImg.naturalHeight;
+                if (!W || !H) {
+                    reject(new Error('Фоновая картинка ещё не загружена'));
+                    return;
+                }
+
+                const canvas = document.createElement('canvas');
+                canvas.width = W;
+                canvas.height = H;
+                const ctx = canvas.getContext('2d');
+
+                ctx.drawImage(bgImg, 0, 0, W, H);
+
+                if (fgWrap.classList.contains('visible') && fgImg.naturalWidth > 0) {
+                    const percent = parseFloat(sizeSlider.value) / 100;
+                    const offY = parseFloat(fgOffsetY.value) / 100;
+
+                    const boxW = W * percent;
+                    const boxH = boxW;
+                    const boxX = (W - boxW) / 2;
+                    const boxY = H * offY;
+
+                    const srcW = fgImg.naturalWidth;
+                    const srcH = fgImg.naturalHeight;
+                    const scale = Math.min(boxW / srcW, boxH / srcH);
+                    const drawW = srcW * scale;
+                    const drawH = srcH * scale;
+                    const drawX = boxX + (boxW - drawW) / 2;
+                    const drawY = boxY + (boxH - drawH) / 2;
+
+                    ctx.drawImage(fgImg, drawX, drawY, drawW, drawH);
+                }
+
+                // Третья картинка — только если галочка включена
+                if (topToggle.checked && topImg.naturalWidth > 0) {
+                    const percent = parseFloat(topSize.value) / 100;
+                    const offX = parseFloat(topOffsetX.value) / 100;
+                    const offY = parseFloat(topOffsetY.value) / 100;
+
+                    const tW = W * percent;
+                    const ratio = topImg.naturalHeight / topImg.naturalWidth;
+                    const tH = tW * ratio;
+
+                    const centerX = W / 2 + W * offX;
+                    const tX = centerX - tW / 2;
+                    const tY = H * offY;
+
+                    ctx.drawImage(topImg, tX, tY, tW, tH);
+                }
+
+                canvas.toBlob((blob) => {
+                    if (blob) resolve(blob);
+                    else reject(new Error('Не удалось создать изображение'));
+                }, 'image/png');
+            });
+        }
+
+        shareBtn.addEventListener('click', async () => {
+            try {
+                const blob = await renderComposite();
+                const file = new File([blob], 'composition.png', { type: 'image/png' });
+
+                if (navigator.canShare && navigator.canShare({ files: [file] })) {
+                    try {
+                        await navigator.share({
+                            files: [file],
+                            title: 'Моя картинка',
+                            text: 'Смотри, что получилось!'
+                        });
+                        return;
+                    } catch (err) {
+                        if (err.name === 'AbortError') return;
+                    }
+                }
+
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'composition.png';
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+                setTimeout(() => URL.revokeObjectURL(url), 1000);
+            } catch (err) {
+                alert('Ошибка: ' + err.message);
+            }
+        });
+
+        applySize(100);
+        applyFgOffsetY(DEFAULT_FG_OFFSET_Y);
+        applyTopSize(DEFAULT_TOP_SIZE);
+        applyTopOffsetX(DEFAULT_TOP_OFFSET_X);
+        applyTopOffsetY(DEFAULT_TOP_OFFSET_Y);
+    </script>
+</body>
+</html>
