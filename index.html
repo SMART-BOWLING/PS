@@ -107,7 +107,6 @@
             display: block;
         }
 
-        /* Третья картинка: включается/выключается галочкой */
         .stack .top-img {
             position: absolute;
             top: calc(var(--top-offset-y, 0) * 1%);
@@ -125,7 +124,7 @@
             display: none;
         }
 
-        /* ===== Пресеты + переключатель + ПАРТНЕР ===== */
+        /* ===== Пресеты + галочка ===== */
         .presets {
             flex: 0 0 auto;
             background: var(--bg-soft);
@@ -175,57 +174,19 @@
             height: 15px;
         }
 
-        /* Кнопка ПАРТНЕР */
-        .partner-btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            padding: 0 12px;
-            height: 32px;
-            border: 1px solid var(--border);
-            background: var(--accent);
-            color: #fff;
-            border-radius: 8px;
-            font-size: 12px;
-            font-weight: 700;
-            font-family: inherit;
-            letter-spacing: 0.4px;
-            cursor: pointer;
-            transition: background 0.15s, border-color 0.15s;
-            flex: 0 0 auto;
-            white-space: nowrap;
-        }
-
-        .partner-btn:hover {
-            background: var(--accent-hover);
-            border-color: var(--accent-hover);
-        }
-
-        .partner-btn:active {
-            background: #3f6fd0;
-        }
-
-        .partner-btn i {
-            width: 14px;
-            height: 14px;
-        }
-
-        /* Галочка включения третьей картинки */
+        /* Нормальная галочка: белая, появляется только когда включена */
         .toggle-top {
             display: inline-flex;
             align-items: center;
-            gap: 6px;
-            padding: 0 10px;
+            justify-content: center;
+            width: 32px;
             height: 32px;
+            padding: 0;
             border: 1px solid var(--border);
             background: var(--surface);
             border-radius: 8px;
             cursor: pointer;
             user-select: none;
-            font-size: 12px;
-            font-weight: 600;
-            color: var(--text);
-            white-space: nowrap;
             flex: 0 0 auto;
             transition: background 0.15s, border-color 0.15s;
         }
@@ -239,38 +200,38 @@
             display: none;
         }
 
-        /* Кастомная галочка */
         .toggle-top .check-box {
-            width: 16px;
-            height: 16px;
-            border: 1.5px solid #6b6e76;
+            width: 18px;
+            height: 18px;
+            border: 1.5px solid #8b8e96;
             border-radius: 4px;
             display: flex;
             align-items: center;
             justify-content: center;
             transition: background 0.15s, border-color 0.15s;
             flex: 0 0 auto;
+            background: transparent;
         }
 
-        .toggle-top .check-box i {
-            width: 12px;
-            height: 12px;
-            color: #fff;
-            opacity: 0;
-            transition: opacity 0.15s;
+        /* Иконка галочки: по умолчанию её нет вообще */
+        .toggle-top .check-box i,
+        .toggle-top .check-box svg {
+            width: 14px;
+            height: 14px;
+            color: #fff !important;
+            stroke: #fff !important;
+            display: none; /* полностью скрыта */
         }
 
+        /* Включена: синий фон + белая галочка */
         .toggle-top input:checked + .check-box {
-            background: var(--success);
-            border-color: var(--success);
+            background: var(--accent);
+            border-color: var(--accent);
         }
 
-        .toggle-top input:checked + .check-box i {
-            opacity: 1;
-        }
-
-        .toggle-top .toggle-label {
-            color: var(--text);
+        .toggle-top input:checked + .check-box i,
+        .toggle-top input:checked + .check-box svg {
+            display: block; /* появляется только когда включена */
         }
 
         /* ===== Панель управления ===== */
@@ -442,7 +403,6 @@
         <label class="toggle-top" title="Включить / выключить третью картинку">
             <input type="checkbox" id="topToggle" checked>
             <span class="check-box"><i data-lucide="check"></i></span>
-            <span class="toggle-label">3-я</span>
         </label>
 
         <button class="preset-btn" data-size="23.28" data-x="35.69" data-y="3.44" title="Пресет 1: 23.28 / 35.69 / 3.44">
@@ -468,12 +428,6 @@
         </button>
         <button class="preset-btn" data-size="100" data-x="0" data-y="0" title="Пресет 8: 100 / 0 / 0">
             <i data-lucide="bookmark"></i>
-        </button>
-
-        <!-- Кнопка ПАРТНЕР -->
-        <button class="partner-btn" id="partnerBtn" title="Партнер">
-            <i data-lucide="handshake"></i>
-            ПАРТНЕР
         </button>
     </div>
 
@@ -569,7 +523,6 @@
         const fgImg = document.getElementById('fgImg');
         const topImg = document.getElementById('topImg');
         const topToggle = document.getElementById('topToggle');
-        const partnerBtn = document.getElementById('partnerBtn');
         const resetBtn = document.getElementById('resetBtn');
         const shareBtn = document.getElementById('shareBtn');
         const stack = document.getElementById('stack');
@@ -628,13 +581,6 @@
         // ===== Галочка: показ/скрытие третьей картинки =====
         topToggle.addEventListener('change', () => {
             topImg.classList.toggle('hidden', !topToggle.checked);
-        });
-
-        // ===== Кнопка ПАРТНЕР =====
-        partnerBtn.addEventListener('click', () => {
-            // TODO: здесь можно открыть ссылку/модалку/событие партнёра.
-            // Пока — просто уведомление, чтобы кнопка была рабочей.
-            alert('ПАРТНЕР');
         });
 
         document.querySelectorAll('.preset-btn').forEach((btn) => {
