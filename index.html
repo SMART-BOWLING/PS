@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Партнер</title>
+    <title>Конструктор изображения</title>
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
         :root {
@@ -92,6 +92,11 @@
             box-shadow: var(--shadow);
         }
 
+        /* ВАЖНО: скрываем через visibility, чтобы .stack сохранял размеры */
+        .stack .bg-img.hidden {
+            visibility: hidden;
+        }
+
         .stack .fg-wrap {
             position: absolute;
             top: calc(var(--fg-offset-y, 0) * 1%);
@@ -136,7 +141,7 @@
             display: none;
         }
 
-        /* ===== Пресеты + галочка ===== */
+        /* ===== Пресеты + переключатели ===== */
         .presets {
             flex: 0 0 auto;
             background: var(--bg-soft);
@@ -186,7 +191,9 @@
             height: 15px;
         }
 
-        .toggle-top {
+        /* Переключатели (галочка 3-й и глаз фона) */
+        .toggle-top,
+        .toggle-bg {
             display: inline-flex;
             align-items: center;
             justify-content: center;
@@ -199,10 +206,12 @@
             cursor: pointer;
             user-select: none;
             flex: 0 0 auto;
-            transition: background 0.15s, border-color 0.15s;
+            transition: background 0.15s, border-color 0.15s, color 0.15s;
+            color: var(--text);
         }
 
-        .toggle-top:hover {
+        .toggle-top:hover,
+        .toggle-bg:hover {
             background: var(--surface-2);
             border-color: #4c4f56;
         }
@@ -241,6 +250,21 @@
         .toggle-top input:checked + .check-box i,
         .toggle-top input:checked + .check-box svg {
             display: block;
+        }
+
+        /* Кнопка фона: иконка глаза */
+        .toggle-bg i,
+        .toggle-bg svg {
+            width: 16px;
+            height: 16px;
+        }
+
+        .toggle-bg.is-off {
+            color: #7a7d84;
+        }
+
+        .toggle-bg.is-off:hover {
+            color: var(--text);
         }
 
         /* ===== Панель управления ===== */
@@ -451,6 +475,12 @@
     </div>
 
     <div class="presets" id="presets">
+        <!-- Переключатель фона (первая картинка) -->
+        <button class="toggle-bg" id="bgToggle" title="Скрыть / показать первую картинку (фон)">
+            <i data-lucide="eye"></i>
+        </button>
+
+        <!-- Галочка третьей картинки -->
         <label class="toggle-top" title="Включить / выключить третью картинку">
             <input type="checkbox" id="topToggle" checked>
             <span class="check-box"><i data-lucide="check"></i></span>
@@ -578,6 +608,7 @@
         const fgImg = document.getElementById('fgImg');
         const topImg = document.getElementById('topImg');
         const topToggle = document.getElementById('topToggle');
+        const bgToggle = document.getElementById('bgToggle');
         const resetBtn = document.getElementById('resetBtn');
         const shareBtn = document.getElementById('shareBtn');
         const downloadBtn = document.getElementById('downloadBtn');
@@ -654,8 +685,24 @@
             });
         });
 
+        // ===== Переключатель третьей картинки =====
         topToggle.addEventListener('change', () => {
             topImg.classList.toggle('hidden', !topToggle.checked);
+        });
+
+        // ===== Переключатель фона (первой картинки) =====
+        function setBgVisible(visible) {
+            bgImg.classList.toggle('hidden', !visible);
+            bgToggle.classList.toggle('is-off', !visible);
+            bgToggle.innerHTML = visible
+                ? '<i data-lucide="eye"></i>'
+                : '<i data-lucide="eye-off"></i>';
+            lucide.createIcons();
+        }
+
+        bgToggle.addEventListener('click', () => {
+            const isVisible = !bgImg.classList.contains('hidden');
+            setBgVisible(!isVisible);
         });
 
         document.querySelectorAll('.preset-btn').forEach((btn) => {
@@ -714,6 +761,7 @@
             fileInput.value = '';
             topToggle.checked = true;
             topImg.classList.remove('hidden');
+            setBgVisible(true);
             sizeSlider.value = 100; applySize(100);
             fgOffsetY.value = DEFAULT_FG_OFFSET_Y; applyFgOffsetY(DEFAULT_FG_OFFSET_Y);
             topSize.value = DEFAULT_TOP_SIZE; applyTopSize(DEFAULT_TOP_SIZE);
@@ -743,7 +791,10 @@
                 canvas.height = H;
                 const ctx = canvas.getContext('2d');
 
-                ctx.drawImage(bgImg, 0, 0, W, H);
+                // Фон рисуем только если он не скрыт
+                if (!bgImg.classList.contains('hidden')) {
+                    ctx.drawImage(bgImg, 0, 0, W, H);
+                }
 
                 if (fgWrap.classList.contains('visible') && fgImg.naturalWidth > 0) {
                     const percent = parseFloat(sizeSlider.value) / 100;
