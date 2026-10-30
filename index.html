@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Конструктор изображения</title>
+    <title>Лигал</title>
     <script src="https://unpkg.com/lucide@latest"></script>
     <style>
         :root {
@@ -14,12 +14,24 @@
             --border: #3f4147;
             --text: #e6e6e8;
             --text-muted: #9a9ca3;
-            --accent: #5b8def;
-            --accent-hover: #4a7ae0;
-            --success: #3ba55d;
-            --success-hover: #349750;
-            --danger: #e05a4e;
-            --danger-hover: #c94a3f;
+
+            --blue: #2e88f7;
+            --blue-hover: #1e74e0;
+            --purple: #9a5cf8;
+            --purple-hover: #8749e8;
+            --pink: #e5456a;
+            --pink-hover: #cf3459;
+            --green: #13d679;
+            --green-hover: #0fbb69;
+            --yellow: #fdc41e;
+            --yellow-hover: #e8b010;
+            --steel: #3989D8;
+            --steel-hover: #2c76c0;
+            --crimson: #D83F70;
+            --crimson-hover: #c22f60;
+
+            --accent: var(--blue);
+            --accent-hover: var(--blue-hover);
             --radius: 10px;
             --shadow: 0 8px 24px rgba(0, 0, 0, 0.35);
         }
@@ -174,7 +186,6 @@
             height: 15px;
         }
 
-        /* Нормальная галочка: белая, появляется только когда включена */
         .toggle-top {
             display: inline-flex;
             align-items: center;
@@ -213,25 +224,23 @@
             background: transparent;
         }
 
-        /* Иконка галочки: по умолчанию её нет вообще */
         .toggle-top .check-box i,
         .toggle-top .check-box svg {
             width: 14px;
             height: 14px;
             color: #fff !important;
             stroke: #fff !important;
-            display: none; /* полностью скрыта */
+            display: none;
         }
 
-        /* Включена: синий фон + белая галочка */
         .toggle-top input:checked + .check-box {
-            background: var(--accent);
-            border-color: var(--accent);
+            background: var(--blue);
+            border-color: var(--blue);
         }
 
         .toggle-top input:checked + .check-box i,
         .toggle-top input:checked + .check-box svg {
-            display: block; /* появляется только когда включена */
+            display: block;
         }
 
         /* ===== Панель управления ===== */
@@ -321,14 +330,30 @@
             background: #44474e;
         }
 
+        /* Кликабельное значение процента */
         .value {
             min-width: 52px;
             text-align: right;
             font-size: 11px;
             color: var(--text-muted);
             font-variant-numeric: tabular-nums;
+            cursor: pointer;
+            border-radius: 4px;
+            padding: 2px 4px;
+            transition: background 0.15s, color 0.15s;
+            user-select: none;
         }
 
+        .value:hover {
+            background: var(--surface-2);
+            color: var(--text);
+        }
+
+        .value:active {
+            background: #3a3d44;
+        }
+
+        /* ===== Кнопки действий ===== */
         .actions {
             display: flex;
             gap: 8px;
@@ -342,7 +367,7 @@
             display: inline-flex;
             align-items: center;
             gap: 6px;
-            padding: 0 12px;
+            padding: 0 14px;
             height: 36px;
             border: none;
             border-radius: var(--radius);
@@ -364,15 +389,43 @@
             height: 14px;
         }
 
-        .btn-upload { background: var(--accent); }
-        .btn-upload:hover { background: var(--accent-hover); }
+        .btn-upload {
+            background: var(--blue);
+        }
+        .btn-upload:hover {
+            background: var(--blue-hover);
+        }
 
-        .btn-share { background: var(--success); }
-        .btn-share:hover { background: var(--success-hover); }
-        .btn-share:disabled { background: #4a4d54; color: #888b92; cursor: not-allowed; }
+        .btn-share {
+            background: var(--purple);
+        }
+        .btn-share:hover {
+            background: var(--purple-hover);
+        }
+        .btn-share:disabled {
+            background: #4a4d54;
+            color: #888b92;
+            cursor: not-allowed;
+        }
 
-        .btn-reset { background: var(--danger); }
-        .btn-reset:hover { background: var(--danger-hover); }
+        .btn-download {
+            background: var(--green);
+        }
+        .btn-download:hover {
+            background: var(--green-hover);
+        }
+        .btn-download:disabled {
+            background: #4a4d54;
+            color: #888b92;
+            cursor: not-allowed;
+        }
+
+        .btn-reset {
+            background: var(--pink);
+        }
+        .btn-reset:hover {
+            background: var(--pink-hover);
+        }
 
         input[type="file"] { display: none; }
 
@@ -399,7 +452,6 @@
     </div>
 
     <div class="presets" id="presets">
-        <!-- Галочка включения/выключения третьей картинки -->
         <label class="toggle-top" title="Включить / выключить третью картинку">
             <input type="checkbox" id="topToggle" checked>
             <span class="check-box"><i data-lucide="check"></i></span>
@@ -441,7 +493,7 @@
                 <button class="icon-btn" data-target="sizeSlider" data-step="0.1" title="Увеличить 2-ю картинку">
                     <i data-lucide="plus"></i>
                 </button>
-                <span class="value" id="sizeValue">100.00%</span>
+                <span class="value" id="sizeValue" data-slider="sizeSlider" title="Сбросить к значению по умолчанию">100.00%</span>
             </div>
         </div>
 
@@ -454,7 +506,7 @@
                 <button class="icon-btn" data-target="fgOffsetY" data-step="0.1" title="Вторая картинка — вниз">
                     <i data-lucide="chevron-down"></i>
                 </button>
-                <span class="value" id="fgOffsetYValue">0.00%</span>
+                <span class="value" id="fgOffsetYValue" data-slider="fgOffsetY" title="Сбросить к значению по умолчанию">0.00%</span>
             </div>
         </div>
 
@@ -467,7 +519,7 @@
                 <button class="icon-btn" data-target="topSize" data-step="0.1" title="Увеличить 3-ю картинку">
                     <i data-lucide="plus"></i>
                 </button>
-                <span class="value" id="topSizeValue">23.28%</span>
+                <span class="value" id="topSizeValue" data-slider="topSize" title="Сбросить к значению по умолчанию">23.28%</span>
             </div>
         </div>
 
@@ -480,7 +532,7 @@
                 <button class="icon-btn" data-target="topOffsetX" data-step="0.1" title="Вправо">
                     <i data-lucide="chevron-right"></i>
                 </button>
-                <span class="value" id="topOffsetXValue">35.69%</span>
+                <span class="value" id="topOffsetXValue" data-slider="topOffsetX" title="Сбросить к значению по умолчанию">35.69%</span>
             </div>
         </div>
 
@@ -493,7 +545,7 @@
                 <button class="icon-btn" data-target="topOffsetY" data-step="0.1" title="Вниз">
                     <i data-lucide="chevron-down"></i>
                 </button>
-                <span class="value" id="topOffsetYValue">3.44%</span>
+                <span class="value" id="topOffsetYValue" data-slider="topOffsetY" title="Сбросить к значению по умолчанию">3.44%</span>
             </div>
         </div>
 
@@ -506,6 +558,10 @@
             <button id="shareBtn" class="btn btn-share" disabled>
                 <i data-lucide="share-2"></i>
                 Поделиться
+            </button>
+            <button id="downloadBtn" class="btn btn-download" disabled>
+                <i data-lucide="download"></i>
+                Скачать
             </button>
             <button id="resetBtn" class="btn btn-reset">
                 <i data-lucide="rotate-ccw"></i>
@@ -525,6 +581,7 @@
         const topToggle = document.getElementById('topToggle');
         const resetBtn = document.getElementById('resetBtn');
         const shareBtn = document.getElementById('shareBtn');
+        const downloadBtn = document.getElementById('downloadBtn');
         const stack = document.getElementById('stack');
 
         const sizeSlider = document.getElementById('sizeSlider');
@@ -545,6 +602,15 @@
         const DEFAULT_TOP_OFFSET_X = 35.69;
         const DEFAULT_TOP_OFFSET_Y = 3.44;
         const DEFAULT_FG_OFFSET_Y = 0;
+
+        // Карта: id ползунка -> значение по умолчанию + применятель
+        const sliderDefaults = {
+            sizeSlider:  { value: 100, apply: applySize },
+            fgOffsetY:    { value: DEFAULT_FG_OFFSET_Y, apply: applyFgOffsetY },
+            topSize:      { value: DEFAULT_TOP_SIZE, apply: applyTopSize },
+            topOffsetX:   { value: DEFAULT_TOP_OFFSET_X, apply: applyTopOffsetX },
+            topOffsetY:   { value: DEFAULT_TOP_OFFSET_Y, apply: applyTopOffsetY },
+        };
 
         function applySize(value) {
             const v = parseFloat(value);
@@ -578,7 +644,19 @@
         topOffsetX.addEventListener('input', (e) => applyTopOffsetX(e.target.value));
         topOffsetY.addEventListener('input', (e) => applyTopOffsetY(e.target.value));
 
-        // ===== Галочка: показ/скрытие третьей картинки =====
+        // ===== Клик по значению — сброс конкретного ползунка к дефолту =====
+        document.querySelectorAll('.value[data-slider]').forEach((el) => {
+            el.addEventListener('click', () => {
+                const sliderId = el.dataset.slider;
+                const def = sliderDefaults[sliderId];
+                if (!def) return;
+
+                const slider = document.getElementById(sliderId);
+                slider.value = def.value;
+                def.apply(def.value);
+            });
+        });
+
         topToggle.addEventListener('change', () => {
             topImg.classList.toggle('hidden', !topToggle.checked);
         });
@@ -624,6 +702,7 @@
                     fgImg.src = event.target.result;
                     fgWrap.classList.add('visible');
                     shareBtn.disabled = false;
+                    downloadBtn.disabled = false;
                 };
                 reader.readAsDataURL(file);
             }
@@ -644,6 +723,7 @@
             topOffsetX.value = DEFAULT_TOP_OFFSET_X; applyTopOffsetX(DEFAULT_TOP_OFFSET_X);
             topOffsetY.value = DEFAULT_TOP_OFFSET_Y; applyTopOffsetY(DEFAULT_TOP_OFFSET_Y);
             shareBtn.disabled = true;
+            downloadBtn.disabled = true;
         });
 
         document.addEventListener('dragover', (e) => e.preventDefault());
@@ -688,7 +768,6 @@
                     ctx.drawImage(fgImg, drawX, drawY, drawW, drawH);
                 }
 
-                // Третья картинка — только если галочка включена
                 if (topToggle.checked && topImg.naturalWidth > 0) {
                     const percent = parseFloat(topSize.value) / 100;
                     const offX = parseFloat(topOffsetX.value) / 100;
@@ -730,6 +809,22 @@
                     }
                 }
 
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = 'composition.png';
+                document.body.appendChild(a);
+                a.click();
+                a.remove();
+                setTimeout(() => URL.revokeObjectURL(url), 1000);
+            } catch (err) {
+                alert('Ошибка: ' + err.message);
+            }
+        });
+
+        downloadBtn.addEventListener('click', async () => {
+            try {
+                const blob = await renderComposite();
                 const url = URL.createObjectURL(blob);
                 const a = document.createElement('a');
                 a.href = url;
