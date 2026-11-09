@@ -777,65 +777,45 @@
                     return;
                 }
 
+                // Реальный отображаемый прямоугольник фоновой картинки в вьюпорте
+                const bgRect = bgImg.getBoundingClientRect();
+                const bgDisplayW = bgRect.width;
+                const bgDisplayH = bgRect.height;
+
+                if (!bgDisplayW || !bgDisplayH) {
+                    reject(new Error('Фоновая картинка ещё не отрисована'));
+                    return;
+                }
+
+                // Коэффициент перевода из отображаемых пикселей в натуральные
+                const kx = W / bgDisplayW;
+                const ky = H / bgDisplayH;
+
                 const layers = [];
 
+                // ===== 1. Фон =====
                 if (!bgImg.classList.contains('hidden')) {
-                    layers.push({
-                        img: bgImg,
-                        x: 0,
-                        y: 0,
-                        w: W,
-                        h: H
-                    });
+                    layers.push({ img: bgImg, x: 0, y: 0, w: W, h: H });
                 }
 
+                // ===== 2. Загруженная картинка =====
                 if (fgWrap.classList.contains('visible') && fgImg.naturalWidth > 0) {
-                    const percent = parseFloat(sizeSlider.value) / 100;
-                    const offY = parseFloat(fgOffsetY.value) / 100;
-
-                    const boxW = W * percent;
-                    const boxH = boxW;
-                    const boxX = (W - boxW) / 2;
-                    const boxY = H * offY;
-
-                    const srcW = fgImg.naturalWidth;
-                    const srcH = fgImg.naturalHeight;
-                    const scale = Math.min(boxW / srcW, boxH / srcH);
-
-                    const drawW = srcW * scale;
-                    const drawH = srcH * scale;
-                    const drawX = boxX + (boxW - drawW) / 2;
-                    const drawY = boxY + (boxH - drawH) / 2;
-
-                    layers.push({
-                        img: fgImg,
-                        x: drawX,
-                        y: drawY,
-                        w: drawW,
-                        h: drawH
-                    });
+                    const r = fgImg.getBoundingClientRect();
+                    const relX = (r.left - bgRect.left) * kx;
+                    const relY = (r.top - bgRect.top) * ky;
+                    const relW = r.width * kx;
+                    const relH = r.height * ky;
+                    layers.push({ img: fgImg, x: relX, y: relY, w: relW, h: relH });
                 }
 
+                // ===== 3. Верхняя картинка =====
                 if (topToggle.checked && topImg.naturalWidth > 0) {
-                    const percent = parseFloat(topSize.value) / 100;
-                    const offX = parseFloat(topOffsetX.value) / 100;
-                    const offY = parseFloat(topOffsetY.value) / 100;
-
-                    const tW = W * percent;
-                    const ratio = topImg.naturalHeight / topImg.naturalWidth;
-                    const tH = tW * ratio;
-
-                    const centerX = W / 2 + W * offX;
-                    const tX = centerX - tW / 2;
-                    const tY = H * offY;
-
-                    layers.push({
-                        img: topImg,
-                        x: tX,
-                        y: tY,
-                        w: tW,
-                        h: tH
-                    });
+                    const r = topImg.getBoundingClientRect();
+                    const relX = (r.left - bgRect.left) * kx;
+                    const relY = (r.top - bgRect.top) * ky;
+                    const relW = r.width * kx;
+                    const relH = r.height * ky;
+                    layers.push({ img: topImg, x: relX, y: relY, w: relW, h: relH });
                 }
 
                 if (!layers.length) {
@@ -843,18 +823,14 @@
                     return;
                 }
 
-                let minX = Infinity;
-                let minY = Infinity;
-                let maxX = -Infinity;
-                let maxY = -Infinity;
-
+                // Общие границы
+                let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
                 layers.forEach(layer => {
                     minX = Math.min(minX, layer.x);
                     minY = Math.min(minY, layer.y);
                     maxX = Math.max(maxX, layer.x + layer.w);
                     maxY = Math.max(maxY, layer.y + layer.h);
                 });
-
                 minX = Math.floor(minX);
                 minY = Math.floor(minY);
                 maxX = Math.ceil(maxX);
@@ -863,6 +839,7 @@
                 const baseWidth = Math.max(1, maxX - minX);
                 const baseHeight = Math.max(1, maxY - minY);
 
+                // Разрешение — по исходникам (прежде всего по загруженной картинке)
                 const sourceScale = layer => Math.max(
                     layer.img.naturalWidth / Math.max(layer.w, 0.001),
                     layer.img.naturalHeight / Math.max(layer.h, 0.001)
