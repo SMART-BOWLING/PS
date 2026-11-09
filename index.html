@@ -92,7 +92,6 @@
             box-shadow: var(--shadow);
         }
 
-        /* ВАЖНО: скрываем через visibility, чтобы .stack сохранял размеры */
         .stack .bg-img.hidden {
             visibility: hidden;
         }
@@ -141,7 +140,6 @@
             display: none;
         }
 
-        /* ===== Пресеты + переключатели ===== */
         .presets {
             flex: 0 0 auto;
             background: var(--bg-soft);
@@ -191,7 +189,6 @@
             height: 15px;
         }
 
-        /* Переключатели (галочка 3-й и глаз фона) */
         .toggle-top,
         .toggle-bg {
             display: inline-flex;
@@ -252,7 +249,6 @@
             display: block;
         }
 
-        /* Кнопка фона: иконка глаза */
         .toggle-bg i,
         .toggle-bg svg {
             width: 16px;
@@ -267,7 +263,6 @@
             color: var(--text);
         }
 
-        /* ===== Панель управления ===== */
         .panel {
             flex: 0 0 auto;
             background: var(--bg-soft);
@@ -376,7 +371,6 @@
             background: #3a3d44;
         }
 
-        /* ===== Кнопки действий ===== */
         .actions {
             display: flex;
             gap: 8px;
@@ -475,24 +469,22 @@
     </div>
 
     <div class="presets" id="presets">
-        <!-- Переключатель фона (первая картинка) -->
         <button class="toggle-bg" id="bgToggle" title="Скрыть / показать первую картинку (фон)">
             <i data-lucide="eye"></i>
         </button>
 
-        <!-- Галочка третьей картинки -->
         <label class="toggle-top" title="Включить / выключить третью картинку">
             <input type="checkbox" id="topToggle" checked>
             <span class="check-box"><i data-lucide="check"></i></span>
         </label>
 
-        <button class="preset-btn" data-size="23.28" data-x="35.69" data-y="3.44" title="Пресет 1: 23.28 / 35.69 / 3.44">
+        <button class="preset-btn" data-size="13.14" data-x="-39.54" data-y="14.06" title="Пресет 1: 13.14 / -39.54 / 14.06">
             <i data-lucide="bookmark"></i>
         </button>
         <button class="preset-btn" data-size="12.41" data-x="-29.17" data-y="87.80" title="Пресет 2: 12.41 / -29.17 / 87.80">
             <i data-lucide="bookmark"></i>
         </button>
-        <button class="preset-btn" data-size="13.14" data-x="-39.54" data-y="14.06" title="Пресет 3: 13.14 / -39.54 / 14.06">
+        <button class="preset-btn" data-size="100" data-x="0" data-y="0" title="Пресет 3: 100 / 0 / 0">
             <i data-lucide="bookmark"></i>
         </button>
         <button class="preset-btn" data-size="100" data-x="0" data-y="0" title="Пресет 4: 100 / 0 / 0">
@@ -544,11 +536,11 @@
                 <button class="icon-btn" data-target="topSize" data-step="-0.1" title="Уменьшить 3-ю картинку">
                     <i data-lucide="minus"></i>
                 </button>
-                <input type="range" id="topSize" min="1" max="200" value="23.28" step="0.01" title="Размер 3-й картинки">
+                <input type="range" id="topSize" min="1" max="200" value="13.14" step="0.01" title="Размер 3-й картинки">
                 <button class="icon-btn" data-target="topSize" data-step="0.1" title="Увеличить 3-ю картинку">
                     <i data-lucide="plus"></i>
                 </button>
-                <span class="value" id="topSizeValue" data-slider="topSize" title="Сбросить к значению по умолчанию">23.28%</span>
+                <span class="value" id="topSizeValue" data-slider="topSize" title="Сбросить к значению по умолчанию">13.14%</span>
             </div>
         </div>
 
@@ -557,11 +549,11 @@
                 <button class="icon-btn" data-target="topOffsetX" data-step="-0.1" title="Влево">
                     <i data-lucide="chevron-left"></i>
                 </button>
-                <input type="range" id="topOffsetX" min="-100" max="100" value="35.69" step="0.01" title="Сдвиг 3-й картинки влево/вправо">
+                <input type="range" id="topOffsetX" min="-100" max="100" value="-39.54" step="0.01" title="Сдвиг 3-й картинки влево/вправо">
                 <button class="icon-btn" data-target="topOffsetX" data-step="0.1" title="Вправо">
                     <i data-lucide="chevron-right"></i>
                 </button>
-                <span class="value" id="topOffsetXValue" data-slider="topOffsetX" title="Сбросить к значению по умолчанию">35.69%</span>
+                <span class="value" id="topOffsetXValue" data-slider="topOffsetX" title="Сбросить к значению по умолчанию">-39.54%</span>
             </div>
         </div>
 
@@ -570,11 +562,11 @@
                 <button class="icon-btn" data-target="topOffsetY" data-step="-0.1" title="Вверх">
                     <i data-lucide="chevron-up"></i>
                 </button>
-                <input type="range" id="topOffsetY" min="-100" max="100" value="3.44" step="0.01" title="Сдвиг 3-й картинки вверх/вниз">
+                <input type="range" id="topOffsetY" min="-100" max="100" value="14.06" step="0.01" title="Сдвиг 3-й картинки вверх/вниз">
                 <button class="icon-btn" data-target="topOffsetY" data-step="0.1" title="Вниз">
                     <i data-lucide="chevron-down"></i>
                 </button>
-                <span class="value" id="topOffsetYValue" data-slider="topOffsetY" title="Сбросить к значению по умолчанию">3.44%</span>
+                <span class="value" id="topOffsetYValue" data-slider="topOffsetY" title="Сбросить к значению по умолчанию">14.06%</span>
             </div>
         </div>
 
@@ -628,9 +620,9 @@
         const defaultBg = 'https://i.postimg.cc/tJyS5hMH/IMG-7368.png';
         const defaultTop = 'https://i.postimg.cc/Px6ymBYz/IMG-7374.png';
 
-        const DEFAULT_TOP_SIZE = 23.28;
-        const DEFAULT_TOP_OFFSET_X = 35.69;
-        const DEFAULT_TOP_OFFSET_Y = 3.44;
+        const DEFAULT_TOP_SIZE = 13.14;
+        const DEFAULT_TOP_OFFSET_X = -39.54;
+        const DEFAULT_TOP_OFFSET_Y = 14.06;
         const DEFAULT_FG_OFFSET_Y = 0;
 
         const sliderDefaults = {
@@ -685,12 +677,10 @@
             });
         });
 
-        // ===== Переключатель третьей картинки =====
         topToggle.addEventListener('change', () => {
             topImg.classList.toggle('hidden', !topToggle.checked);
         });
 
-        // ===== Переключатель фона (первой картинки) =====
         function setBgVisible(visible) {
             bgImg.classList.toggle('hidden', !visible);
             bgToggle.classList.toggle('is-off', !visible);
@@ -789,7 +779,6 @@
 
                 const layers = [];
 
-                // ===== 1. Первая картинка / фон =====
                 if (!bgImg.classList.contains('hidden')) {
                     layers.push({
                         img: bgImg,
@@ -800,7 +789,6 @@
                     });
                 }
 
-                // ===== 2. Загруженная картинка =====
                 if (fgWrap.classList.contains('visible') && fgImg.naturalWidth > 0) {
                     const percent = parseFloat(sizeSlider.value) / 100;
                     const offY = parseFloat(fgOffsetY.value) / 100;
@@ -828,7 +816,6 @@
                     });
                 }
 
-                // ===== 3. Верхняя картинка =====
                 if (topToggle.checked && topImg.naturalWidth > 0) {
                     const percent = parseFloat(topSize.value) / 100;
                     const offX = parseFloat(topOffsetX.value) / 100;
@@ -856,7 +843,6 @@
                     return;
                 }
 
-                // ===== Считаем общие границы только ВКЛЮЧЁННЫХ изображений =====
                 let minX = Infinity;
                 let minY = Infinity;
                 let maxX = -Infinity;
@@ -869,7 +855,6 @@
                     maxY = Math.max(maxY, layer.y + layer.h);
                 });
 
-                // Округляем наружу, чтобы ничего не обрезалось на 1 пиксель
                 minX = Math.floor(minX);
                 minY = Math.floor(minY);
                 maxX = Math.ceil(maxX);
@@ -878,9 +863,6 @@
                 const baseWidth = Math.max(1, maxX - minX);
                 const baseHeight = Math.max(1, maxY - minY);
 
-                // Разрешение экспорта рассчитывается по реальным исходникам,
-                // прежде всего по второй (загруженной) картинке.
-                // Простое 4-кратное увеличение могло терять её настоящие пиксели.
                 const sourceScale = layer => Math.max(
                     layer.img.naturalWidth / Math.max(layer.w, 0.001),
                     layer.img.naturalHeight / Math.max(layer.h, 0.001)
@@ -890,8 +872,6 @@
                     ? Math.max(1, sourceScale(uploadedLayer))
                     : Math.max(1, ...layers.map(sourceScale));
 
-                // Защита от лимитов браузера: сохраняем максимально возможное
-                // исходное разрешение в пределах безопасного размера canvas.
                 const MAX_DIMENSION = 16384;
                 const MAX_PIXELS = 80000000;
                 const scale = Math.min(
@@ -913,7 +893,6 @@
                 ctx.setTransform(canvas.width / baseWidth, 0, 0,
                                  canvas.height / baseHeight, 0, 0);
 
-                // Сдвигаем все изображения к началу холста, не меняя их пропорции.
                 layers.forEach(layer => {
                     ctx.drawImage(
                         layer.img,
