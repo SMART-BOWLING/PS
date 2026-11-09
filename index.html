@@ -484,7 +484,7 @@
         <button class="preset-btn" data-size="12.41" data-x="-29.17" data-y="87.80" title="Пресет 2: 12.41 / -29.17 / 87.80">
             <i data-lucide="bookmark"></i>
         </button>
-        <button class="preset-btn" data-size="100" data-x="0" data-y="0" title="Пресет 3: 100 / 0 / 0">
+        <button class="preset-btn" data-size="14.44" data-x="33.61" data-y="88.66" title="Пресет 3: 14.44 / 33.61 / 88.66">
             <i data-lucide="bookmark"></i>
         </button>
         <button class="preset-btn" data-size="100" data-x="0" data-y="0" title="Пресет 4: 100 / 0 / 0">
@@ -777,7 +777,6 @@
                     return;
                 }
 
-                // Реальный отображаемый прямоугольник фоновой картинки в вьюпорте
                 const bgRect = bgImg.getBoundingClientRect();
                 const bgDisplayW = bgRect.width;
                 const bgDisplayH = bgRect.height;
@@ -787,35 +786,35 @@
                     return;
                 }
 
-                // Коэффициент перевода из отображаемых пикселей в натуральные
                 const kx = W / bgDisplayW;
                 const ky = H / bgDisplayH;
 
                 const layers = [];
 
-                // ===== 1. Фон =====
                 if (!bgImg.classList.contains('hidden')) {
                     layers.push({ img: bgImg, x: 0, y: 0, w: W, h: H });
                 }
 
-                // ===== 2. Загруженная картинка =====
                 if (fgWrap.classList.contains('visible') && fgImg.naturalWidth > 0) {
                     const r = fgImg.getBoundingClientRect();
-                    const relX = (r.left - bgRect.left) * kx;
-                    const relY = (r.top - bgRect.top) * ky;
-                    const relW = r.width * kx;
-                    const relH = r.height * ky;
-                    layers.push({ img: fgImg, x: relX, y: relY, w: relW, h: relH });
+                    layers.push({
+                        img: fgImg,
+                        x: (r.left - bgRect.left) * kx,
+                        y: (r.top - bgRect.top) * ky,
+                        w: r.width * kx,
+                        h: r.height * ky
+                    });
                 }
 
-                // ===== 3. Верхняя картинка =====
                 if (topToggle.checked && topImg.naturalWidth > 0) {
                     const r = topImg.getBoundingClientRect();
-                    const relX = (r.left - bgRect.left) * kx;
-                    const relY = (r.top - bgRect.top) * ky;
-                    const relW = r.width * kx;
-                    const relH = r.height * ky;
-                    layers.push({ img: topImg, x: relX, y: relY, w: relW, h: relH });
+                    layers.push({
+                        img: topImg,
+                        x: (r.left - bgRect.left) * kx,
+                        y: (r.top - bgRect.top) * ky,
+                        w: r.width * kx,
+                        h: r.height * ky
+                    });
                 }
 
                 if (!layers.length) {
@@ -823,7 +822,6 @@
                     return;
                 }
 
-                // Общие границы
                 let minX = Infinity, minY = Infinity, maxX = -Infinity, maxY = -Infinity;
                 layers.forEach(layer => {
                     minX = Math.min(minX, layer.x);
@@ -839,7 +837,6 @@
                 const baseWidth = Math.max(1, maxX - minX);
                 const baseHeight = Math.max(1, maxY - minY);
 
-                // Разрешение — по исходникам (прежде всего по загруженной картинке)
                 const sourceScale = layer => Math.max(
                     layer.img.naturalWidth / Math.max(layer.w, 0.001),
                     layer.img.naturalHeight / Math.max(layer.h, 0.001)
