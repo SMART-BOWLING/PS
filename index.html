@@ -140,11 +140,21 @@
             display: none;
         }
 
-        .presets {
+        /* Нижний док: поднят выше от нижнего края экрана */
+        .dock {
             flex: 0 0 auto;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            padding: 0 14px 90px; /* отступ снизу, чтобы блок поднялся выше */
+            background: transparent;
+        }
+
+        .presets {
             background: var(--bg-soft);
-            border-top: 1px solid var(--border);
-            padding: 8px 14px 4px;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 8px 14px;
             display: flex;
             flex-wrap: nowrap;
             gap: 8px;
@@ -190,7 +200,8 @@
         }
 
         .toggle-top,
-        .toggle-bg {
+        .toggle-bg,
+        .toggle-hidden {
             display: inline-flex;
             align-items: center;
             justify-content: center;
@@ -208,7 +219,8 @@
         }
 
         .toggle-top:hover,
-        .toggle-bg:hover {
+        .toggle-bg:hover,
+        .toggle-hidden:hover {
             background: var(--surface-2);
             border-color: #4c4f56;
         }
@@ -250,7 +262,9 @@
         }
 
         .toggle-bg i,
-        .toggle-bg svg {
+        .toggle-bg svg,
+        .toggle-hidden i,
+        .toggle-hidden svg {
             width: 16px;
             height: 16px;
         }
@@ -263,11 +277,21 @@
             color: var(--text);
         }
 
+        .toggle-hidden i,
+        .toggle-hidden svg {
+            transition: transform 0.25s ease;
+        }
+
+        .toggle-hidden.open i,
+        .toggle-hidden.open svg {
+            transform: rotate(180deg);
+        }
+
         .panel {
-            flex: 0 0 auto;
             background: var(--bg-soft);
-            border-top: 1px solid var(--border);
-            padding: 8px 14px 20px;
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 8px 14px;
             display: flex;
             flex-wrap: wrap;
             gap: 8px;
@@ -284,6 +308,14 @@
             align-items: center;
             min-width: 180px;
             flex: 0 1 210px;
+        }
+
+        .control.hidden-ctrl {
+            display: none;
+        }
+
+        .control.hidden-ctrl.show {
+            display: flex;
         }
 
         .control-row {
@@ -447,8 +479,7 @@
         input[type="file"] { display: none; }
 
         @media (max-width: 760px) {
-            .panel { padding: 8px 8px 16px; gap: 6px; }
-            .presets { padding: 8px 8px 4px; }
+            .dock { padding: 0 8px 60px; }
             .control { flex: 1 1 100%; min-width: 0; }
             .actions { flex: 1 1 100%; }
             .btn { flex: 1 1 auto; justify-content: center; }
@@ -456,6 +487,7 @@
     </style>
 </head>
 <body>
+    <!-- Сцена с изображениями сверху -->
     <div class="stage">
         <div class="stack" id="stack">
             <img class="bg-img" id="bgImg" src="https://i.postimg.cc/tJyS5hMH/IMG-7368.png" alt="Фон" crossorigin="anonymous">
@@ -468,126 +500,131 @@
         </div>
     </div>
 
-    <div class="presets" id="presets">
-        <button class="toggle-bg" id="bgToggle" title="Скрыть / показать первую картинку (фон)">
-            <i data-lucide="eye"></i>
-        </button>
+    <!-- Нижний док: пресеты + настройки + кнопки, поднят выше от нижнего края -->
+    <div class="dock">
+        <div class="presets" id="presets">
+            <button class="toggle-bg" id="bgToggle" title="Скрыть / показать первую картинку (фон)">
+                <i data-lucide="eye"></i>
+            </button>
 
-        <label class="toggle-top" title="Включить / выключить третью картинку">
-            <input type="checkbox" id="topToggle" checked>
-            <span class="check-box"><i data-lucide="check"></i></span>
-        </label>
-
-        <button class="preset-btn" data-size="13.14" data-x="-39.54" data-y="15.43" title="Пресет 1: 13.14 / -39.54 / 15.43">
-            <i data-lucide="bookmark"></i>
-        </button>
-        <button class="preset-btn" data-size="12.41" data-x="-39.54" data-y="22.66" title="Пресет 2: 12.41 / -39.54 / 22.66">
-            <i data-lucide="bookmark"></i>
-        </button>
-        <button class="preset-btn" data-size="14.44" data-x="33.61" data-y="88.66" title="Пресет 3: 14.44 / 33.61 / 88.66">
-            <i data-lucide="bookmark"></i>
-        </button>
-        <button class="preset-btn" data-size="100" data-x="0" data-y="0" title="Пресет 4: 100 / 0 / 0">
-            <i data-lucide="bookmark"></i>
-        </button>
-        <button class="preset-btn" data-size="100" data-x="0" data-y="0" title="Пресет 5: 100 / 0 / 0">
-            <i data-lucide="bookmark"></i>
-        </button>
-        <button class="preset-btn" data-size="100" data-x="0" data-y="0" title="Пресет 6: 100 / 0 / 0">
-            <i data-lucide="bookmark"></i>
-        </button>
-        <button class="preset-btn" data-size="100" data-x="0" data-y="0" title="Пресет 7: 100 / 0 / 0">
-            <i data-lucide="bookmark"></i>
-        </button>
-        <button class="preset-btn" data-size="100" data-x="0" data-y="0" title="Пресет 8: 100 / 0 / 0">
-            <i data-lucide="bookmark"></i>
-        </button>
-    </div>
-
-    <div class="panel">
-        <div class="control">
-            <div class="control-row">
-                <button class="icon-btn" data-target="sizeSlider" data-step="-0.1" title="Уменьшить 2-ю картинку">
-                    <i data-lucide="minus"></i>
-                </button>
-                <input type="range" id="sizeSlider" min="10" max="200" value="100" step="0.1" title="Размер 2-й картинки">
-                <button class="icon-btn" data-target="sizeSlider" data-step="0.1" title="Увеличить 2-ю картинку">
-                    <i data-lucide="plus"></i>
-                </button>
-                <span class="value" id="sizeValue" data-slider="sizeSlider" title="Сбросить к значению по умолчанию">100.00%</span>
-            </div>
-        </div>
-
-        <div class="control">
-            <div class="control-row">
-                <button class="icon-btn" data-target="fgOffsetY" data-step="-0.1" title="Вторая картинка — вверх">
-                    <i data-lucide="chevron-up"></i>
-                </button>
-                <input type="range" id="fgOffsetY" min="-100" max="100" value="0" step="0.01" title="Сдвиг 2-й картинки вверх/вниз">
-                <button class="icon-btn" data-target="fgOffsetY" data-step="0.1" title="Вторая картинка — вниз">
-                    <i data-lucide="chevron-down"></i>
-                </button>
-                <span class="value" id="fgOffsetYValue" data-slider="fgOffsetY" title="Сбросить к значению по умолчанию">0.00%</span>
-            </div>
-        </div>
-
-        <div class="control">
-            <div class="control-row">
-                <button class="icon-btn" data-target="topSize" data-step="-0.1" title="Уменьшить 3-ю картинку">
-                    <i data-lucide="minus"></i>
-                </button>
-                <input type="range" id="topSize" min="1" max="200" value="13.14" step="0.01" title="Размер 3-й картинки">
-                <button class="icon-btn" data-target="topSize" data-step="0.1" title="Увеличить 3-ю картинку">
-                    <i data-lucide="plus"></i>
-                </button>
-                <span class="value" id="topSizeValue" data-slider="topSize" title="Сбросить к значению по умолчанию">13.14%</span>
-            </div>
-        </div>
-
-        <div class="control">
-            <div class="control-row">
-                <button class="icon-btn" data-target="topOffsetX" data-step="-0.1" title="Влево">
-                    <i data-lucide="chevron-left"></i>
-                </button>
-                <input type="range" id="topOffsetX" min="-100" max="100" value="-39.54" step="0.01" title="Сдвиг 3-й картинки влево/вправо">
-                <button class="icon-btn" data-target="topOffsetX" data-step="0.1" title="Вправо">
-                    <i data-lucide="chevron-right"></i>
-                </button>
-                <span class="value" id="topOffsetXValue" data-slider="topOffsetX" title="Сбросить к значению по умолчанию">-39.54%</span>
-            </div>
-        </div>
-
-        <div class="control">
-            <div class="control-row">
-                <button class="icon-btn" data-target="topOffsetY" data-step="-0.1" title="Вверх">
-                    <i data-lucide="chevron-up"></i>
-                </button>
-                <input type="range" id="topOffsetY" min="-100" max="100" value="14.06" step="0.01" title="Сдвиг 3-й картинки вверх/вниз">
-                <button class="icon-btn" data-target="topOffsetY" data-step="0.1" title="Вниз">
-                    <i data-lucide="chevron-down"></i>
-                </button>
-                <span class="value" id="topOffsetYValue" data-slider="topOffsetY" title="Сбросить к значению по умолчанию">14.06%</span>
-            </div>
-        </div>
-
-        <div class="actions">
-            <input type="file" id="fileInput" accept="image/*">
-            <label for="fileInput" class="btn btn-upload">
-                <i data-lucide="upload"></i>
-                Загрузить
+            <label class="toggle-top" title="Включить / выключить третью картинку">
+                <input type="checkbox" id="topToggle" checked>
+                <span class="check-box"><i data-lucide="check"></i></span>
             </label>
-            <button id="shareBtn" class="btn btn-share" disabled>
-                <i data-lucide="share-2"></i>
-                Поделиться
+
+            <button class="preset-btn" data-size="13.14" data-x="-39.54" data-y="15.43" title="Пресет 1: 13.14 / -39.54 / 15.43">
+                <i data-lucide="bookmark"></i>
             </button>
-            <button id="downloadBtn" class="btn btn-download" disabled>
-                <i data-lucide="download"></i>
-                Скачать
+            <button class="preset-btn" data-size="12.41" data-x="-39.54" data-y="22.66" title="Пресет 2: 12.41 / -39.54 / 22.66">
+                <i data-lucide="bookmark"></i>
             </button>
-            <button id="resetBtn" class="btn btn-reset">
-                <i data-lucide="rotate-ccw"></i>
-                Сбросить
+            <button class="preset-btn" data-size="14.44" data-x="33.61" data-y="88.66" title="Пресет 3: 14.44 / 33.61 / 88.66">
+                <i data-lucide="bookmark"></i>
             </button>
+            <button class="preset-btn" data-size="100" data-x="0" data-y="0" title="Пресет 4: 100 / 0 / 0">
+                <i data-lucide="bookmark"></i>
+            </button>
+            <button class="preset-btn" data-size="100" data-x="0" data-y="0" title="Пресет 5: 100 / 0 / 0">
+                <i data-lucide="bookmark"></i>
+            </button>
+            <button class="preset-btn" data-size="100" data-x="0" data-y="0" title="Пресет 6: 100 / 0 / 0">
+                <i data-lucide="bookmark"></i>
+            </button>
+            <button class="preset-btn" data-size="100" data-x="0" data-y="0" title="Пресет 7: 100 / 0 / 0">
+                <i data-lucide="bookmark"></i>
+            </button>
+
+            <!-- Кнопка скрытия/раскрытия всех ползунков -->
+            <button class="toggle-hidden" id="hiddenToggle" title="Показать / скрыть ползунки">
+                <i data-lucide="chevron-up"></i>
+            </button>
+        </div>
+
+        <div class="panel" id="panel">
+            <div class="control hidden-ctrl" id="ctrlSize">
+                <div class="control-row">
+                    <button class="icon-btn" data-target="sizeSlider" data-step="-0.1" title="Уменьшить 2-ю картинку">
+                        <i data-lucide="minus"></i>
+                    </button>
+                    <input type="range" id="sizeSlider" min="10" max="200" value="100" step="0.1" title="Размер 2-й картинки">
+                    <button class="icon-btn" data-target="sizeSlider" data-step="0.1" title="Увеличить 2-ю картинку">
+                        <i data-lucide="plus"></i>
+                    </button>
+                    <span class="value" id="sizeValue" data-slider="sizeSlider" title="Сбросить к значению по умолчанию">100.00%</span>
+                </div>
+            </div>
+
+            <div class="control hidden-ctrl" id="ctrlFgOffsetY">
+                <div class="control-row">
+                    <button class="icon-btn" data-target="fgOffsetY" data-step="-0.1" title="Вторая картинка — вверх">
+                        <i data-lucide="chevron-up"></i>
+                    </button>
+                    <input type="range" id="fgOffsetY" min="-100" max="100" value="0" step="0.01" title="Сдвиг 2-й картинки вверх/вниз">
+                    <button class="icon-btn" data-target="fgOffsetY" data-step="0.1" title="Вторая картинка — вниз">
+                        <i data-lucide="chevron-down"></i>
+                    </button>
+                    <span class="value" id="fgOffsetYValue" data-slider="fgOffsetY" title="Сбросить к значению по умолчанию">0.00%</span>
+                </div>
+            </div>
+
+            <div class="control hidden-ctrl" id="ctrlTopSize">
+                <div class="control-row">
+                    <button class="icon-btn" data-target="topSize" data-step="-0.1" title="Уменьшить 3-ю картинку">
+                        <i data-lucide="minus"></i>
+                    </button>
+                    <input type="range" id="topSize" min="1" max="200" value="13.14" step="0.01" title="Размер 3-й картинки">
+                    <button class="icon-btn" data-target="topSize" data-step="0.1" title="Увеличить 3-ю картинку">
+                        <i data-lucide="plus"></i>
+                    </button>
+                    <span class="value" id="topSizeValue" data-slider="topSize" title="Сбросить к значению по умолчанию">13.14%</span>
+                </div>
+            </div>
+
+            <div class="control hidden-ctrl" id="ctrlTopOffsetX">
+                <div class="control-row">
+                    <button class="icon-btn" data-target="topOffsetX" data-step="-0.1" title="Влево">
+                        <i data-lucide="chevron-left"></i>
+                    </button>
+                    <input type="range" id="topOffsetX" min="-100" max="100" value="-39.54" step="0.01" title="Сдвиг 3-й картинки влево/вправо">
+                    <button class="icon-btn" data-target="topOffsetX" data-step="0.1" title="Вправо">
+                        <i data-lucide="chevron-right"></i>
+                    </button>
+                    <span class="value" id="topOffsetXValue" data-slider="topOffsetX" title="Сбросить к значению по умолчанию">-39.54%</span>
+                </div>
+            </div>
+
+            <div class="control hidden-ctrl" id="ctrlTopOffsetY">
+                <div class="control-row">
+                    <button class="icon-btn" data-target="topOffsetY" data-step="-0.1" title="Вверх">
+                        <i data-lucide="chevron-up"></i>
+                    </button>
+                    <input type="range" id="topOffsetY" min="-100" max="100" value="14.06" step="0.01" title="Сдвиг 3-й картинки вверх/вниз">
+                    <button class="icon-btn" data-target="topOffsetY" data-step="0.1" title="Вниз">
+                        <i data-lucide="chevron-down"></i>
+                    </button>
+                    <span class="value" id="topOffsetYValue" data-slider="topOffsetY" title="Сбросить к значению по умолчанию">14.06%</span>
+                </div>
+            </div>
+
+            <div class="actions">
+                <input type="file" id="fileInput" accept="image/*">
+                <label for="fileInput" class="btn btn-upload">
+                    <i data-lucide="upload"></i>
+                    Загрузить
+                </label>
+                <button id="shareBtn" class="btn btn-share" disabled>
+                    <i data-lucide="share-2"></i>
+                    Поделиться
+                </button>
+                <button id="downloadBtn" class="btn btn-download" disabled>
+                    <i data-lucide="download"></i>
+                    Скачать
+                </button>
+                <button id="resetBtn" class="btn btn-reset">
+                    <i data-lucide="rotate-ccw"></i>
+                    Сбросить
+                </button>
+            </div>
         </div>
     </div>
 
@@ -601,10 +638,19 @@
         const topImg = document.getElementById('topImg');
         const topToggle = document.getElementById('topToggle');
         const bgToggle = document.getElementById('bgToggle');
+        const hiddenToggle = document.getElementById('hiddenToggle');
         const resetBtn = document.getElementById('resetBtn');
         const shareBtn = document.getElementById('shareBtn');
         const downloadBtn = document.getElementById('downloadBtn');
         const stack = document.getElementById('stack');
+
+        const hiddenCtrls = [
+            document.getElementById('ctrlSize'),
+            document.getElementById('ctrlFgOffsetY'),
+            document.getElementById('ctrlTopSize'),
+            document.getElementById('ctrlTopOffsetX'),
+            document.getElementById('ctrlTopOffsetY'),
+        ];
 
         const sizeSlider = document.getElementById('sizeSlider');
         const sizeValue = document.getElementById('sizeValue');
@@ -681,6 +727,11 @@
             topImg.classList.toggle('hidden', !topToggle.checked);
         });
 
+        hiddenToggle.addEventListener('click', () => {
+            const isOpen = hiddenToggle.classList.toggle('open');
+            hiddenCtrls.forEach(ctrl => ctrl.classList.toggle('show', isOpen));
+        });
+
         function setBgVisible(visible) {
             bgImg.classList.toggle('hidden', !visible);
             bgToggle.classList.toggle('is-off', !visible);
@@ -751,7 +802,7 @@
             fileInput.value = '';
             topToggle.checked = true;
             topImg.classList.remove('hidden');
-            setBgVisible(true);
+            setBgVisible(false);
             sizeSlider.value = 100; applySize(100);
             fgOffsetY.value = DEFAULT_FG_OFFSET_Y; applyFgOffsetY(DEFAULT_FG_OFFSET_Y);
             topSize.value = DEFAULT_TOP_SIZE; applyTopSize(DEFAULT_TOP_SIZE);
@@ -936,6 +987,9 @@
         applyTopSize(DEFAULT_TOP_SIZE);
         applyTopOffsetX(DEFAULT_TOP_OFFSET_X);
         applyTopOffsetY(DEFAULT_TOP_OFFSET_Y);
+
+        // Глазик выключен по умолчанию
+        setBgVisible(false);
     </script>
 </body>
 </html>
