@@ -140,17 +140,28 @@
             display: none;
         }
 
-        /* Нижний док: поднят выше от нижнего края экрана */
+        /* Нижний док: пресеты всегда видны, панель настроек выезжает поверх сцены */
         .dock {
-            flex: 0 0 auto;
+            position: fixed;
+            left: 0;
+            right: 0;
+            bottom: 90px; /* поднят от нижнего края */
+            z-index: 10;
             display: flex;
             flex-direction: column;
+            align-items: center;
             gap: 6px;
-            padding: 0 14px 90px; /* отступ снизу, чтобы блок поднялся выше */
-            background: transparent;
+            padding: 0 14px;
+            pointer-events: none; /* чтобы не блокировать сцену в пустых местах */
+        }
+
+        .dock > * {
+            pointer-events: auto;
         }
 
         .presets {
+            width: 100%;
+            max-width: 900px;
             background: var(--bg-soft);
             border: 1px solid var(--border);
             border-radius: 12px;
@@ -162,6 +173,7 @@
             justify-content: center;
             overflow-x: auto;
             scrollbar-width: none;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
         }
 
         .presets::-webkit-scrollbar {
@@ -287,7 +299,14 @@
             transform: rotate(180deg);
         }
 
+        /* Панель настроек: абсолютно позиционирована относительно дока, не двигает сцену */
         .panel {
+            position: absolute;
+            left: 50%;
+            bottom: calc(100% + 6px); /* выезжает вверх над пресетами */
+            transform: translate(-50%, 10px);
+            width: 100%;
+            max-width: 900px;
             background: var(--bg-soft);
             border: 1px solid var(--border);
             border-radius: 12px;
@@ -297,6 +316,20 @@
             gap: 8px;
             align-items: center;
             justify-content: center;
+            opacity: 0;
+            visibility: hidden;
+            pointer-events: none;
+            transition: opacity 0.2s ease, transform 0.2s ease, visibility 0.2s;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+            max-height: 60vh;
+            overflow-y: auto;
+        }
+
+        .panel.open {
+            opacity: 1;
+            visibility: visible;
+            pointer-events: auto;
+            transform: translate(-50%, 0);
         }
 
         .control {
@@ -479,15 +512,16 @@
         input[type="file"] { display: none; }
 
         @media (max-width: 760px) {
-            .dock { padding: 0 8px 60px; }
+            .dock { bottom: 60px; padding: 0 8px; }
             .control { flex: 1 1 100%; min-width: 0; }
             .actions { flex: 1 1 100%; }
             .btn { flex: 1 1 auto; justify-content: center; }
+            .panel { max-width: 100%; }
         }
     </style>
 </head>
 <body>
-    <!-- Сцена с изображениями сверху -->
+    <!-- Сцена с изображениями -->
     <div class="stage">
         <div class="stack" id="stack">
             <img class="bg-img" id="bgImg" src="https://i.postimg.cc/tJyS5hMH/IMG-7368.png" alt="Фон" crossorigin="anonymous">
@@ -500,7 +534,7 @@
         </div>
     </div>
 
-    <!-- Нижний док: пресеты + настройки + кнопки, поднят выше от нижнего края -->
+    <!-- Нижний док: пресеты + выезжающая панель настроек (не двигает сцену) -->
     <div class="dock">
         <div class="presets" id="presets">
             <button class="toggle-bg" id="bgToggle" title="Скрыть / показать первую картинку (фон)">
@@ -534,14 +568,14 @@
                 <i data-lucide="bookmark"></i>
             </button>
 
-            <!-- Кнопка скрытия/раскрытия всех ползунков -->
+            <!-- Кнопка скрытия/раскрытия панели настроек -->
             <button class="toggle-hidden" id="hiddenToggle" title="Показать / скрыть ползунки">
                 <i data-lucide="chevron-up"></i>
             </button>
         </div>
 
         <div class="panel" id="panel">
-            <div class="control hidden-ctrl" id="ctrlSize">
+            <div class="control" id="ctrlSize">
                 <div class="control-row">
                     <button class="icon-btn" data-target="sizeSlider" data-step="-0.1" title="Уменьшить 2-ю картинку">
                         <i data-lucide="minus"></i>
@@ -554,7 +588,7 @@
                 </div>
             </div>
 
-            <div class="control hidden-ctrl" id="ctrlFgOffsetY">
+            <div class="control" id="ctrlFgOffsetY">
                 <div class="control-row">
                     <button class="icon-btn" data-target="fgOffsetY" data-step="-0.1" title="Вторая картинка — вверх">
                         <i data-lucide="chevron-up"></i>
@@ -567,7 +601,7 @@
                 </div>
             </div>
 
-            <div class="control hidden-ctrl" id="ctrlTopSize">
+            <div class="control" id="ctrlTopSize">
                 <div class="control-row">
                     <button class="icon-btn" data-target="topSize" data-step="-0.1" title="Уменьшить 3-ю картинку">
                         <i data-lucide="minus"></i>
@@ -580,7 +614,7 @@
                 </div>
             </div>
 
-            <div class="control hidden-ctrl" id="ctrlTopOffsetX">
+            <div class="control" id="ctrlTopOffsetX">
                 <div class="control-row">
                     <button class="icon-btn" data-target="topOffsetX" data-step="-0.1" title="Влево">
                         <i data-lucide="chevron-left"></i>
@@ -593,7 +627,7 @@
                 </div>
             </div>
 
-            <div class="control hidden-ctrl" id="ctrlTopOffsetY">
+            <div class="control" id="ctrlTopOffsetY">
                 <div class="control-row">
                     <button class="icon-btn" data-target="topOffsetY" data-step="-0.1" title="Вверх">
                         <i data-lucide="chevron-up"></i>
@@ -639,18 +673,11 @@
         const topToggle = document.getElementById('topToggle');
         const bgToggle = document.getElementById('bgToggle');
         const hiddenToggle = document.getElementById('hiddenToggle');
+        const panel = document.getElementById('panel');
         const resetBtn = document.getElementById('resetBtn');
         const shareBtn = document.getElementById('shareBtn');
         const downloadBtn = document.getElementById('downloadBtn');
         const stack = document.getElementById('stack');
-
-        const hiddenCtrls = [
-            document.getElementById('ctrlSize'),
-            document.getElementById('ctrlFgOffsetY'),
-            document.getElementById('ctrlTopSize'),
-            document.getElementById('ctrlTopOffsetX'),
-            document.getElementById('ctrlTopOffsetY'),
-        ];
 
         const sizeSlider = document.getElementById('sizeSlider');
         const sizeValue = document.getElementById('sizeValue');
@@ -728,8 +755,8 @@
         });
 
         hiddenToggle.addEventListener('click', () => {
-            const isOpen = hiddenToggle.classList.toggle('open');
-            hiddenCtrls.forEach(ctrl => ctrl.classList.toggle('show', isOpen));
+            const isOpen = panel.classList.toggle('open');
+            hiddenToggle.classList.toggle('open', isOpen);
         });
 
         function setBgVisible(visible) {
