@@ -591,7 +591,7 @@
             <button class="preset-btn" data-size="100" data-x="0" data-y="0" title="Пресет 5: 100 / 0 / 0">
                 <i data-lucide="bookmark"></i>
             </button>
-            <button class="preset-btn" data-size="100" data-x="0" data-y="0" title="Пресет 6: 100 / 0 / 0">
+            <button class="preset-btn" data-ad="1" data-size="21.56" data-x="30.15" data-y="81.27" title="Пресет 6 (лого 2): 21.56 / 30.15 / 81.27">
                 <i data-lucide="bookmark"></i>
             </button>
 
@@ -895,9 +895,15 @@
                 const x = parseFloat(btn.dataset.x);
                 const y = parseFloat(btn.dataset.y);
 
-                topSize.value = size; applyTopSize(size);
-                topOffsetX.value = x; applyTopOffsetX(x);
-                topOffsetY.value = y; applyTopOffsetY(y);
+                if (btn.dataset.ad === '1') {
+                    adSize.value = size; applyAdSize(size);
+                    adOffsetX.value = x; applyAdOffsetX(x);
+                    adOffsetY.value = y; applyAdOffsetY(y);
+                } else {
+                    topSize.value = size; applyTopSize(size);
+                    topOffsetX.value = x; applyTopOffsetX(x);
+                    topOffsetY.value = y; applyTopOffsetY(y);
+                }
             });
         });
 
