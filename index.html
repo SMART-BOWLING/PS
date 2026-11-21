@@ -140,19 +140,35 @@
             display: none;
         }
 
-        /* Нижний док: пресеты всегда видны, панель настроек выезжает поверх сцены */
+        .stack .ad-img {
+            position: absolute;
+            top: calc(var(--ad-offset-y, 50) * 1%);
+            left: calc(50% + var(--ad-offset-x, 0) * 1%);
+            transform: translateX(-50%);
+            width: calc(var(--ad-size, 30) * 1%);
+            object-fit: contain;
+            display: block;
+            z-index: 3;
+            pointer-events: none;
+            transition: top 0.05s linear, left 0.05s linear, width 0.05s linear;
+        }
+
+        .stack .ad-img.hidden {
+            display: none;
+        }
+
         .dock {
             position: fixed;
             left: 0;
             right: 0;
-            bottom: 90px; /* поднят от нижнего края */
+            bottom: 90px;
             z-index: 10;
             display: flex;
             flex-direction: column;
             align-items: center;
             gap: 6px;
             padding: 0 14px;
-            pointer-events: none; /* чтобы не блокировать сцену в пустых местах */
+            pointer-events: none;
         }
 
         .dock > * {
@@ -213,6 +229,7 @@
 
         .toggle-top,
         .toggle-bg,
+        .toggle-ad,
         .toggle-hidden {
             display: inline-flex;
             align-items: center;
@@ -232,6 +249,7 @@
 
         .toggle-top:hover,
         .toggle-bg:hover,
+        .toggle-ad:hover,
         .toggle-hidden:hover {
             background: var(--surface-2);
             border-color: #4c4f56;
@@ -275,17 +293,21 @@
 
         .toggle-bg i,
         .toggle-bg svg,
+        .toggle-ad i,
+        .toggle-ad svg,
         .toggle-hidden i,
         .toggle-hidden svg {
             width: 16px;
             height: 16px;
         }
 
-        .toggle-bg.is-off {
+        .toggle-bg.is-off,
+        .toggle-ad.is-off {
             color: #7a7d84;
         }
 
-        .toggle-bg.is-off:hover {
+        .toggle-bg.is-off:hover,
+        .toggle-ad.is-off:hover {
             color: var(--text);
         }
 
@@ -299,11 +321,24 @@
             transform: rotate(180deg);
         }
 
-        /* Панель настроек: абсолютно позиционирована относительно дока, не двигает сцену */
         .panel {
+            width: 100%;
+            max-width: 900px;
+            background: var(--bg-soft);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 8px 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 8px;
+            align-items: center;
+            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+        }
+
+        .sliders {
             position: absolute;
             left: 50%;
-            bottom: calc(100% + 6px); /* выезжает вверх над пресетами */
+            bottom: calc(100% + 6px);
             transform: translate(-50%, 10px);
             width: 100%;
             max-width: 900px;
@@ -325,7 +360,7 @@
             overflow-y: auto;
         }
 
-        .panel.open {
+        .sliders.open {
             opacity: 1;
             visibility: visible;
             pointer-events: auto;
@@ -341,14 +376,6 @@
             align-items: center;
             min-width: 180px;
             flex: 0 1 210px;
-        }
-
-        .control.hidden-ctrl {
-            display: none;
-        }
-
-        .control.hidden-ctrl.show {
-            display: flex;
         }
 
         .control-row {
@@ -442,7 +469,7 @@
             align-items: stretch;
             flex-wrap: wrap;
             justify-content: center;
-            flex: 0 1 auto;
+            width: 100%;
         }
 
         .btn {
@@ -514,14 +541,12 @@
         @media (max-width: 760px) {
             .dock { bottom: 60px; padding: 0 8px; }
             .control { flex: 1 1 100%; min-width: 0; }
-            .actions { flex: 1 1 100%; }
             .btn { flex: 1 1 auto; justify-content: center; }
-            .panel { max-width: 100%; }
+            .sliders { max-width: 100%; }
         }
     </style>
 </head>
 <body>
-    <!-- Сцена с изображениями -->
     <div class="stage">
         <div class="stack" id="stack">
             <img class="bg-img" id="bgImg" src="https://i.postimg.cc/tJyS5hMH/IMG-7368.png" alt="Фон" crossorigin="anonymous">
@@ -531,10 +556,11 @@
             </div>
 
             <img class="top-img" id="topImg" src="https://i.postimg.cc/Px6ymBYz/IMG-7374.png" alt="Верхняя картинка" crossorigin="anonymous">
+
+            <img class="ad-img" id="adImg" src="https://res.cloudinary.com/dplmdnxvk/image/upload/v1795193508/ibm5cjcv6efegp0esyix.png" alt="Рекламный лого 2" crossorigin="anonymous">
         </div>
     </div>
 
-    <!-- Нижний док: пресеты + выезжающая панель настроек (не двигает сцену) -->
     <div class="dock">
         <div class="presets" id="presets">
             <button class="toggle-bg" id="bgToggle" title="Скрыть / показать первую картинку (фон)">
@@ -545,6 +571,10 @@
                 <input type="checkbox" id="topToggle" checked>
                 <span class="check-box"><i data-lucide="check"></i></span>
             </label>
+
+            <button class="toggle-ad" id="adToggle" title="Скрыть / показать рекламный лого 2">
+                <i data-lucide="eye"></i>
+            </button>
 
             <button class="preset-btn" data-size="13.14" data-x="-39.54" data-y="15.43" title="Пресет 1: 13.14 / -39.54 / 15.43">
                 <i data-lucide="bookmark"></i>
@@ -564,79 +594,116 @@
             <button class="preset-btn" data-size="100" data-x="0" data-y="0" title="Пресет 6: 100 / 0 / 0">
                 <i data-lucide="bookmark"></i>
             </button>
-            <button class="preset-btn" data-size="100" data-x="0" data-y="0" title="Пресет 7: 100 / 0 / 0">
-                <i data-lucide="bookmark"></i>
-            </button>
 
-            <!-- Кнопка скрытия/раскрытия панели настроек -->
             <button class="toggle-hidden" id="hiddenToggle" title="Показать / скрыть ползунки">
                 <i data-lucide="chevron-up"></i>
             </button>
         </div>
 
         <div class="panel" id="panel">
-            <div class="control" id="ctrlSize">
-                <div class="control-row">
-                    <button class="icon-btn" data-target="sizeSlider" data-step="-0.1" title="Уменьшить 2-ю картинку">
-                        <i data-lucide="minus"></i>
-                    </button>
-                    <input type="range" id="sizeSlider" min="10" max="200" value="100" step="0.1" title="Размер 2-й картинки">
-                    <button class="icon-btn" data-target="sizeSlider" data-step="0.1" title="Увеличить 2-ю картинку">
-                        <i data-lucide="plus"></i>
-                    </button>
-                    <span class="value" id="sizeValue" data-slider="sizeSlider" title="Сбросить к значению по умолчанию">100.00%</span>
+            <div class="sliders" id="sliders">
+                <div class="control" id="ctrlSize">
+                    <div class="control-row">
+                        <button class="icon-btn" data-target="sizeSlider" data-step="-0.1" title="Уменьшить 2-ю картинку">
+                            <i data-lucide="minus"></i>
+                        </button>
+                        <input type="range" id="sizeSlider" min="10" max="200" value="100" step="0.1" title="Размер 2-й картинки">
+                        <button class="icon-btn" data-target="sizeSlider" data-step="0.1" title="Увеличить 2-ю картинку">
+                            <i data-lucide="plus"></i>
+                        </button>
+                        <span class="value" id="sizeValue" data-slider="sizeSlider" title="Сбросить к значению по умолчанию">100.00%</span>
+                    </div>
                 </div>
-            </div>
 
-            <div class="control" id="ctrlFgOffsetY">
-                <div class="control-row">
-                    <button class="icon-btn" data-target="fgOffsetY" data-step="-0.1" title="Вторая картинка — вверх">
-                        <i data-lucide="chevron-up"></i>
-                    </button>
-                    <input type="range" id="fgOffsetY" min="-100" max="100" value="0" step="0.01" title="Сдвиг 2-й картинки вверх/вниз">
-                    <button class="icon-btn" data-target="fgOffsetY" data-step="0.1" title="Вторая картинка — вниз">
-                        <i data-lucide="chevron-down"></i>
-                    </button>
-                    <span class="value" id="fgOffsetYValue" data-slider="fgOffsetY" title="Сбросить к значению по умолчанию">0.00%</span>
+                <div class="control" id="ctrlFgOffsetY">
+                    <div class="control-row">
+                        <button class="icon-btn" data-target="fgOffsetY" data-step="-0.1" title="Вторая картинка — вверх">
+                            <i data-lucide="chevron-up"></i>
+                        </button>
+                        <input type="range" id="fgOffsetY" min="-100" max="100" value="0" step="0.01" title="Сдвиг 2-й картинки вверх/вниз">
+                        <button class="icon-btn" data-target="fgOffsetY" data-step="0.1" title="Вторая картинка — вниз">
+                            <i data-lucide="chevron-down"></i>
+                        </button>
+                        <span class="value" id="fgOffsetYValue" data-slider="fgOffsetY" title="Сбросить к значению по умолчанию">0.00%</span>
+                    </div>
                 </div>
-            </div>
 
-            <div class="control" id="ctrlTopSize">
-                <div class="control-row">
-                    <button class="icon-btn" data-target="topSize" data-step="-0.1" title="Уменьшить 3-ю картинку">
-                        <i data-lucide="minus"></i>
-                    </button>
-                    <input type="range" id="topSize" min="1" max="200" value="13.14" step="0.01" title="Размер 3-й картинки">
-                    <button class="icon-btn" data-target="topSize" data-step="0.1" title="Увеличить 3-ю картинку">
-                        <i data-lucide="plus"></i>
-                    </button>
-                    <span class="value" id="topSizeValue" data-slider="topSize" title="Сбросить к значению по умолчанию">13.14%</span>
+                <div class="control" id="ctrlTopSize">
+                    <div class="control-row">
+                        <button class="icon-btn" data-target="topSize" data-step="-0.1" title="Уменьшить 3-ю картинку">
+                            <i data-lucide="minus"></i>
+                        </button>
+                        <input type="range" id="topSize" min="1" max="200" value="13.14" step="0.01" title="Размер 3-й картинки">
+                        <button class="icon-btn" data-target="topSize" data-step="0.1" title="Увеличить 3-ю картинку">
+                            <i data-lucide="plus"></i>
+                        </button>
+                        <span class="value" id="topSizeValue" data-slider="topSize" title="Сбросить к значению по умолчанию">13.14%</span>
+                    </div>
                 </div>
-            </div>
 
-            <div class="control" id="ctrlTopOffsetX">
-                <div class="control-row">
-                    <button class="icon-btn" data-target="topOffsetX" data-step="-0.1" title="Влево">
-                        <i data-lucide="chevron-left"></i>
-                    </button>
-                    <input type="range" id="topOffsetX" min="-100" max="100" value="-39.54" step="0.01" title="Сдвиг 3-й картинки влево/вправо">
-                    <button class="icon-btn" data-target="topOffsetX" data-step="0.1" title="Вправо">
-                        <i data-lucide="chevron-right"></i>
-                    </button>
-                    <span class="value" id="topOffsetXValue" data-slider="topOffsetX" title="Сбросить к значению по умолчанию">-39.54%</span>
+                <div class="control" id="ctrlTopOffsetX">
+                    <div class="control-row">
+                        <button class="icon-btn" data-target="topOffsetX" data-step="-0.1" title="Влево">
+                            <i data-lucide="chevron-left"></i>
+                        </button>
+                        <input type="range" id="topOffsetX" min="-100" max="100" value="-39.54" step="0.01" title="Сдвиг 3-й картинки влево/вправо">
+                        <button class="icon-btn" data-target="topOffsetX" data-step="0.1" title="Вправо">
+                            <i data-lucide="chevron-right"></i>
+                        </button>
+                        <span class="value" id="topOffsetXValue" data-slider="topOffsetX" title="Сбросить к значению по умолчанию">-39.54%</span>
+                    </div>
                 </div>
-            </div>
 
-            <div class="control" id="ctrlTopOffsetY">
-                <div class="control-row">
-                    <button class="icon-btn" data-target="topOffsetY" data-step="-0.1" title="Вверх">
-                        <i data-lucide="chevron-up"></i>
-                    </button>
-                    <input type="range" id="topOffsetY" min="-100" max="100" value="14.06" step="0.01" title="Сдвиг 3-й картинки вверх/вниз">
-                    <button class="icon-btn" data-target="topOffsetY" data-step="0.1" title="Вниз">
-                        <i data-lucide="chevron-down"></i>
-                    </button>
-                    <span class="value" id="topOffsetYValue" data-slider="topOffsetY" title="Сбросить к значению по умолчанию">14.06%</span>
+                <div class="control" id="ctrlTopOffsetY">
+                    <div class="control-row">
+                        <button class="icon-btn" data-target="topOffsetY" data-step="-0.1" title="Вверх">
+                            <i data-lucide="chevron-up"></i>
+                        </button>
+                        <input type="range" id="topOffsetY" min="-100" max="100" value="14.06" step="0.01" title="Сдвиг 3-й картинки вверх/вниз">
+                        <button class="icon-btn" data-target="topOffsetY" data-step="0.1" title="Вниз">
+                            <i data-lucide="chevron-down"></i>
+                        </button>
+                        <span class="value" id="topOffsetYValue" data-slider="topOffsetY" title="Сбросить к значению по умолчанию">14.06%</span>
+                    </div>
+                </div>
+
+                <div class="control" id="ctrlAdSize">
+                    <div class="control-row">
+                        <button class="icon-btn" data-target="adSize" data-step="-0.1" title="Уменьшить лого 2">
+                            <i data-lucide="minus"></i>
+                        </button>
+                        <input type="range" id="adSize" min="1" max="200" value="30" step="0.01" title="Размер рекламного лого 2">
+                        <button class="icon-btn" data-target="adSize" data-step="0.1" title="Увеличить лого 2">
+                            <i data-lucide="plus"></i>
+                        </button>
+                        <span class="value" id="adSizeValue" data-slider="adSize" title="Сбросить к значению по умолчанию">30.00%</span>
+                    </div>
+                </div>
+
+                <div class="control" id="ctrlAdOffsetX">
+                    <div class="control-row">
+                        <button class="icon-btn" data-target="adOffsetX" data-step="-0.1" title="Лого 2 — влево">
+                            <i data-lucide="chevron-left"></i>
+                        </button>
+                        <input type="range" id="adOffsetX" min="-100" max="100" value="0" step="0.01" title="Сдвиг лого 2 влево/вправо">
+                        <button class="icon-btn" data-target="adOffsetX" data-step="0.1" title="Лого 2 — вправо">
+                            <i data-lucide="chevron-right"></i>
+                        </button>
+                        <span class="value" id="adOffsetXValue" data-slider="adOffsetX" title="Сбросить к значению по умолчанию">0.00%</span>
+                    </div>
+                </div>
+
+                <div class="control" id="ctrlAdOffsetY">
+                    <div class="control-row">
+                        <button class="icon-btn" data-target="adOffsetY" data-step="-0.1" title="Лого 2 — вверх">
+                            <i data-lucide="chevron-up"></i>
+                        </button>
+                        <input type="range" id="adOffsetY" min="-100" max="100" value="50" step="0.01" title="Сдвиг лого 2 вверх/вниз">
+                        <button class="icon-btn" data-target="adOffsetY" data-step="0.1" title="Лого 2 — вниз">
+                            <i data-lucide="chevron-down"></i>
+                        </button>
+                        <span class="value" id="adOffsetYValue" data-slider="adOffsetY" title="Сбросить к значению по умолчанию">50.00%</span>
+                    </div>
                 </div>
             </div>
 
@@ -670,10 +737,12 @@
         const fgWrap = document.getElementById('fgWrap');
         const fgImg = document.getElementById('fgImg');
         const topImg = document.getElementById('topImg');
+        const adImg = document.getElementById('adImg');
         const topToggle = document.getElementById('topToggle');
         const bgToggle = document.getElementById('bgToggle');
+        const adToggle = document.getElementById('adToggle');
         const hiddenToggle = document.getElementById('hiddenToggle');
-        const panel = document.getElementById('panel');
+        const sliders = document.getElementById('sliders');
         const resetBtn = document.getElementById('resetBtn');
         const shareBtn = document.getElementById('shareBtn');
         const downloadBtn = document.getElementById('downloadBtn');
@@ -690,13 +759,25 @@
         const topOffsetY = document.getElementById('topOffsetY');
         const topOffsetYValue = document.getElementById('topOffsetYValue');
 
+        const adSize = document.getElementById('adSize');
+        const adSizeValue = document.getElementById('adSizeValue');
+        const adOffsetX = document.getElementById('adOffsetX');
+        const adOffsetXValue = document.getElementById('adOffsetXValue');
+        const adOffsetY = document.getElementById('adOffsetY');
+        const adOffsetYValue = document.getElementById('adOffsetYValue');
+
         const defaultBg = 'https://i.postimg.cc/tJyS5hMH/IMG-7368.png';
         const defaultTop = 'https://i.postimg.cc/Px6ymBYz/IMG-7374.png';
+        const defaultAd = 'https://res.cloudinary.com/dplmdnxvk/image/upload/v1795193508/ibm5cjcv6efegp0esyix.png';
 
         const DEFAULT_TOP_SIZE = 13.14;
         const DEFAULT_TOP_OFFSET_X = -39.54;
         const DEFAULT_TOP_OFFSET_Y = 14.06;
         const DEFAULT_FG_OFFSET_Y = 0;
+
+        const DEFAULT_AD_SIZE = 30;
+        const DEFAULT_AD_OFFSET_X = 0;
+        const DEFAULT_AD_OFFSET_Y = 50;
 
         const sliderDefaults = {
             sizeSlider:  { value: 100, apply: applySize },
@@ -704,6 +785,9 @@
             topSize:      { value: DEFAULT_TOP_SIZE, apply: applyTopSize },
             topOffsetX:   { value: DEFAULT_TOP_OFFSET_X, apply: applyTopOffsetX },
             topOffsetY:   { value: DEFAULT_TOP_OFFSET_Y, apply: applyTopOffsetY },
+            adSize:       { value: DEFAULT_AD_SIZE, apply: applyAdSize },
+            adOffsetX:    { value: DEFAULT_AD_OFFSET_X, apply: applyAdOffsetX },
+            adOffsetY:    { value: DEFAULT_AD_OFFSET_Y, apply: applyAdOffsetY },
         };
 
         function applySize(value) {
@@ -731,12 +815,30 @@
             stack.style.setProperty('--top-offset-y', v);
             topOffsetYValue.textContent = v.toFixed(2) + '%';
         }
+        function applyAdSize(value) {
+            const v = parseFloat(value);
+            stack.style.setProperty('--ad-size', v);
+            adSizeValue.textContent = v.toFixed(2) + '%';
+        }
+        function applyAdOffsetX(value) {
+            const v = parseFloat(value);
+            stack.style.setProperty('--ad-offset-x', v);
+            adOffsetXValue.textContent = v.toFixed(2) + '%';
+        }
+        function applyAdOffsetY(value) {
+            const v = parseFloat(value);
+            stack.style.setProperty('--ad-offset-y', v);
+            adOffsetYValue.textContent = v.toFixed(2) + '%';
+        }
 
         sizeSlider.addEventListener('input', (e) => applySize(e.target.value));
         fgOffsetY.addEventListener('input', (e) => applyFgOffsetY(e.target.value));
         topSize.addEventListener('input', (e) => applyTopSize(e.target.value));
         topOffsetX.addEventListener('input', (e) => applyTopOffsetX(e.target.value));
         topOffsetY.addEventListener('input', (e) => applyTopOffsetY(e.target.value));
+        adSize.addEventListener('input', (e) => applyAdSize(e.target.value));
+        adOffsetX.addEventListener('input', (e) => applyAdOffsetX(e.target.value));
+        adOffsetY.addEventListener('input', (e) => applyAdOffsetY(e.target.value));
 
         document.querySelectorAll('.value[data-slider]').forEach((el) => {
             el.addEventListener('click', () => {
@@ -755,7 +857,7 @@
         });
 
         hiddenToggle.addEventListener('click', () => {
-            const isOpen = panel.classList.toggle('open');
+            const isOpen = sliders.classList.toggle('open');
             hiddenToggle.classList.toggle('open', isOpen);
         });
 
@@ -768,9 +870,23 @@
             lucide.createIcons();
         }
 
+        function setAdVisible(visible) {
+            adImg.classList.toggle('hidden', !visible);
+            adToggle.classList.toggle('is-off', !visible);
+            adToggle.innerHTML = visible
+                ? '<i data-lucide="eye"></i>'
+                : '<i data-lucide="eye-off"></i>';
+            lucide.createIcons();
+        }
+
         bgToggle.addEventListener('click', () => {
             const isVisible = !bgImg.classList.contains('hidden');
             setBgVisible(!isVisible);
+        });
+
+        adToggle.addEventListener('click', () => {
+            const isVisible = !adImg.classList.contains('hidden');
+            setAdVisible(!isVisible);
         });
 
         document.querySelectorAll('.preset-btn').forEach((btn) => {
@@ -803,6 +919,9 @@
                     case 'topSize': applyTopSize(newVal); break;
                     case 'topOffsetX': applyTopOffsetX(newVal); break;
                     case 'topOffsetY': applyTopOffsetY(newVal); break;
+                    case 'adSize': applyAdSize(newVal); break;
+                    case 'adOffsetX': applyAdOffsetX(newVal); break;
+                    case 'adOffsetY': applyAdOffsetY(newVal); break;
                 }
             });
         });
@@ -826,15 +945,20 @@
             fgImg.src = '';
             bgImg.src = defaultBg;
             topImg.src = defaultTop;
+            adImg.src = defaultAd;
             fileInput.value = '';
             topToggle.checked = true;
             topImg.classList.remove('hidden');
             setBgVisible(false);
+            setAdVisible(true);
             sizeSlider.value = 100; applySize(100);
             fgOffsetY.value = DEFAULT_FG_OFFSET_Y; applyFgOffsetY(DEFAULT_FG_OFFSET_Y);
             topSize.value = DEFAULT_TOP_SIZE; applyTopSize(DEFAULT_TOP_SIZE);
             topOffsetX.value = DEFAULT_TOP_OFFSET_X; applyTopOffsetX(DEFAULT_TOP_OFFSET_X);
             topOffsetY.value = DEFAULT_TOP_OFFSET_Y; applyTopOffsetY(DEFAULT_TOP_OFFSET_Y);
+            adSize.value = DEFAULT_AD_SIZE; applyAdSize(DEFAULT_AD_SIZE);
+            adOffsetX.value = DEFAULT_AD_OFFSET_X; applyAdOffsetX(DEFAULT_AD_OFFSET_X);
+            adOffsetY.value = DEFAULT_AD_OFFSET_Y; applyAdOffsetY(DEFAULT_AD_OFFSET_Y);
             shareBtn.disabled = true;
             downloadBtn.disabled = true;
         });
@@ -888,6 +1012,17 @@
                     const r = topImg.getBoundingClientRect();
                     layers.push({
                         img: topImg,
+                        x: (r.left - bgRect.left) * kx,
+                        y: (r.top - bgRect.top) * ky,
+                        w: r.width * kx,
+                        h: r.height * ky
+                    });
+                }
+
+                if (!adImg.classList.contains('hidden') && adImg.naturalWidth > 0) {
+                    const r = adImg.getBoundingClientRect();
+                    layers.push({
+                        img: adImg,
                         x: (r.left - bgRect.left) * kx,
                         y: (r.top - bgRect.top) * ky,
                         w: r.width * kx,
@@ -1014,6 +1149,9 @@
         applyTopSize(DEFAULT_TOP_SIZE);
         applyTopOffsetX(DEFAULT_TOP_OFFSET_X);
         applyTopOffsetY(DEFAULT_TOP_OFFSET_Y);
+        applyAdSize(DEFAULT_AD_SIZE);
+        applyAdOffsetX(DEFAULT_AD_OFFSET_X);
+        applyAdOffsetY(DEFAULT_AD_OFFSET_Y);
 
         // Глазик выключен по умолчанию
         setBgVisible(false);
